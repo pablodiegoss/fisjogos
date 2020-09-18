@@ -40,7 +40,15 @@ class Circle(Body):
     
     def draw(self):
         pyxel.circ(self.position_x, self.position_y, self.radius, self.color)
- 
+
+class Rect(Body):
+    def __init__(self, width, height, *args, **kwargs):
+        self.width = width
+        self.height = height
+        super().__init__(*args, **kwargs)
+    
+    def draw(self):
+        pyxel.rect(self.position_x,self.position_y, self.width, self.height, self.color)
 
 class Space:
     def __init__(self):
@@ -53,8 +61,12 @@ class Space:
         circle = Circle(*args, **kwargs)
         self.add_body(circle)
         return circle
- 
-    ... # rect, tri, lines, ...
+    
+    def add_rect(self, *args, **kwargs):
+        rect = Rect(*args, **kwargs)
+        self.add_body(rect)
+        return rect
+    # tri, lines, ...
  
     def update(self, dt):
         for body in self.bodies:
@@ -74,13 +86,23 @@ pyxel.init(180, 120, fps=FPS)
 sp = Space()
  
 for _ in range(50):
-    body = sp.add_circle(
-        radius=random.uniform(2, 7),
-        pos=(0, 120),
-        vel=(random.uniform(0, 50), random.uniform(-60, 0)),
-        color=random.randrange(16),
-    )
- 
+    if(random.uniform(1,3) >= 1.5): 
+        sp.add_circle(
+            radius=random.uniform(2, 7),
+            pos=(0, 120),
+            vel=(random.uniform(0, 50), random.uniform(-60, 0)),
+            color=random.randrange(16),
+        )
+    else: 
+        sp.add_rect(
+            width=random.uniform(2,8),
+            height=random.uniform(2,8),
+            pos=(0,120),
+            vel=(random.uniform(0, 50), random.uniform(-60, 0)),
+            color=random.randrange(16),
+        )
+
+
 def update():
     for body in sp.bodies:
         body.apply_force(0, 10)
