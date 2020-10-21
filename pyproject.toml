@@ -1,0 +1,15 @@
+[build-system]
+requires = ["flit_core >=2,<3"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "retro_archery"
+author = "Pablo Silva"
+author-email = "pablodiegoss@hotmail.com"
+home-page = "https://github.com/pablodiegoss/fisjogos"
+classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
+requires = [
+    "pymunk >=5.7.0",
+    "pyxel >=1.4.2",
+]
+requires-python=">=3.7"
