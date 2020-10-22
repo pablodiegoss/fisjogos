@@ -2,7 +2,7 @@
 
 
 def move_to_floor(pyxel_object):
-    floor_height = 0
+    floor_height = 3
     pyxel_object.y = GameConfig().height - pyxel_object.height - floor_height
 
 

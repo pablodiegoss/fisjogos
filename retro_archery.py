@@ -6,7 +6,8 @@ from src import update, draw, GameConfig
 import pyxel
 
 FPS = 60
-SCREEN_SIZE = (220, 150)
+PYXEL_TILE_SIZE = 64
+SCREEN_SIZE = (PYXEL_TILE_SIZE*4, PYXEL_TILE_SIZE*3)
 
 
 if __name__ == "__main__":
