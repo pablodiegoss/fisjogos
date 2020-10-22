@@ -2,7 +2,7 @@
 
 __version__ = "0.0.1"
 
-from src import update, draw, GameConfig
+from src import update, draw, GameConfig, set_up
 import pyxel
 
 FPS = 60
@@ -18,4 +18,5 @@ if __name__ == "__main__":
     pyxel.init(gc.width, gc.height, fps=gc.fps, caption="Retro Archery Challenge")
     pyxel.mouse(True)
     pyxel.load("res/my_resource.pyxres")
+    set_up()
     pyxel.run(update, draw)

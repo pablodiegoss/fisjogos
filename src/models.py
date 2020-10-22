@@ -1,6 +1,6 @@
 import pyxel
 from enum import Enum
-
+from pymunk import Vec2d
 
 class SpriteData:
     def __init__(self, sprite_page, sprite_x, sprite_y, width, height, color_alpha):
@@ -27,6 +27,7 @@ class Sprite(Enum):
     BLUE = SpriteData(0, 3, 3, 10, 28, 2)
     RED = SpriteData(0, 19, 3, 10, 28, 2)
     BOW = SpriteData(0, 0, 32, 13, 17, pyxel.COLOR_WHITE)
+    BOW_INVERTED = SpriteData(0, 0, 32, -13, 17, pyxel.COLOR_WHITE)
     TREE = SpriteData(0, 60, 0, 39, 64, pyxel.COLOR_WHITE)
     GROUND_ARROW = SpriteData(0, 32, 21, 16, 11, pyxel.COLOR_WHITE)
     RED_ARROW = SpriteData(0, 33, 0, 15, 5, pyxel.COLOR_WHITE)
@@ -76,13 +77,16 @@ class Bow(PyxelObject):
 
 
 class Player(PyxelObject):
-    bow_offset = (2, 5)
+    bow_offset = (3, 5)
 
     def __init__(self, x, y, sprite):
         self.bow = Bow(0, 0)
+        if sprite.value == Sprite.RED.value:
+            self.bow_offset = (-6, 5)
+            self.bow.sprite = Sprite.BOW_INVERTED
         super().__init__(x, y, sprite)
 
-    @property
+    @property   
     def x(self):
         return self.__x
 
@@ -100,9 +104,13 @@ class Player(PyxelObject):
         self.__y = y
         self.bow.y = y + self.bow_offset[1]
 
+    def get_shoulder(self):
+        shoulder_position = Vec2d(self.x + self.width / 2, self.y + (self.height / 2) - 4)
+        return shoulder_position
+
     def draw(self):
         super().draw()
-        shoulder_position = (self.x + self.width / 2, self.y + (self.height / 2) - 4)
+        shoulder_position = self.get_shoulder()
 
         # bow arm
         pyxel.line(*shoulder_position, *self.bow.get_handle(), pyxel.COLOR_BLACK)
