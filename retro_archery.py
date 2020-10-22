@@ -6,7 +6,9 @@ from src import update, draw, GameConfig
 import pyxel
 
 FPS = 60
-SCREEN_SIZE = (120, 90)
+SCREEN_SIZE = (220, 150)
+
+
 if __name__ == "__main__":
     gc = GameConfig()
     gc.fps = FPS
