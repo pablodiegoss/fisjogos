@@ -36,6 +36,8 @@ class Sprite(Enum):
 
 class PyxelObject:
     def __init__(self, x, y, sprite):
+        self.pos = Vec2d(0,0)
+        self.draw_pos = Vec2d(0,0)
         self.x = x
         self.y = y
         self.sprite = sprite
@@ -44,19 +46,19 @@ class PyxelObject:
 
     @property
     def x(self):
-        return self.__x
+        return self.pos.x
 
     @x.setter
     def x(self, x):
-        self.__x = x
+        self.pos.x = x
 
     @property
     def y(self):
-        return self.__y
+        return self.pos.y
 
     @y.setter
     def y(self, y):
-        self.__y = y
+        self.pos.y = y
 
     def blit(self):
         return (self.x, self.y, *self.sprite.value.as_tuple())
@@ -70,10 +72,13 @@ class Bow(PyxelObject):
         super().__init__(x, y, Sprite.BOW)
 
     def get_handle(self):
-        return (self.x + self.width, self.y + self.height / 2)
+        return Vec2d(self.draw_pos.x + self.width, self.draw_pos.y + self.height / 2)
 
     def get_string(self):
-        return (self.x, self.y + self.height / 2)
+        return Vec2d(self.draw_pos.x, self.draw_pos.y + self.height / 2)
+    
+    def blit(self):
+        return (self.draw_pos.x, self.draw_pos.y, *self.sprite.value.as_tuple())
 
 
 class Player(PyxelObject):
@@ -88,20 +93,20 @@ class Player(PyxelObject):
 
     @property   
     def x(self):
-        return self.__x
+        return self.pos.x
 
     @x.setter
     def x(self, x):
-        self.__x = x
+        self.pos.x = x
         self.bow.x = x + self.bow_offset[0]
 
     @property
     def y(self):
-        return self.__y
+        return self.pos.y
 
     @y.setter
     def y(self, y):
-        self.__y = y
+        self.pos.y = y
         self.bow.y = y + self.bow_offset[1]
 
     def get_shoulder(self):
@@ -120,3 +125,8 @@ class Player(PyxelObject):
         elbow_position = (self.x - 2, shoulder_position[1] + 2)
         pyxel.line(*shoulder_position, *elbow_position, pyxel.COLOR_BLACK)
         pyxel.line(*elbow_position, *self.bow.get_string(), pyxel.COLOR_BLACK)
+
+
+class Arrow(PyxelObject):
+    def __init__(self, x, y, sprite = Sprite.BLUE_ARROW):
+        super().__init__(x, y, sprite)
