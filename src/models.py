@@ -1,6 +1,6 @@
 import pyxel
 from enum import Enum
-from pymunk import Vec2d
+from pymunk import Vec2d, Body, Circle
 
 class SpriteData:
     def __init__(self, sprite_page, sprite_x, sprite_y, width, height, color_alpha):
@@ -32,6 +32,7 @@ class Sprite(Enum):
     GROUND_ARROW = SpriteData(0, 32, 21, 16, 11, pyxel.COLOR_WHITE)
     RED_ARROW = SpriteData(0, 33, 0, 15, 5, pyxel.COLOR_WHITE)
     BLUE_ARROW = SpriteData(0, 33, 7, 15, 5, pyxel.COLOR_WHITE)
+    ROCK = SpriteData(0,18,34,10,8,pyxel.COLOR_PURPLE)
 
 
 class PyxelObject:
@@ -127,6 +128,13 @@ class Player(PyxelObject):
         pyxel.line(*elbow_position, *self.bow.get_string(), pyxel.COLOR_BLACK)
 
 
-class Arrow(PyxelObject):
-    def __init__(self, x, y, sprite = Sprite.BLUE_ARROW):
+class Rock(PyxelObject):
+    def __init__(self, x, y, sprite = Sprite.ROCK):
         super().__init__(x, y, sprite)
+        self.body = Body(mass=1, moment=1)
+        self.body.position = (x,y)
+        self.shape = Circle(self.body, 10)
+        self.shape.elasticity = 0.1
+    def blit(self):
+        return (*self.body.position, *self.sprite.value.as_tuple())
+

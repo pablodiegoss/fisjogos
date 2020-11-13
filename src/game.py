@@ -1,5 +1,5 @@
 import pyxel
-from pymunk import Transform
+from pymunk import Space, Transform
 from .models import *
 from .utils import *
 from math import cos, sin
@@ -39,6 +39,9 @@ def update():
             pyxel.force = 0
     p = pyxel.player1
 
+    pyxel.space.rock.body.apply_force_at_world_point((0,40),(0,0))
+    pyxel.space.step(1/GameConfig().fps)
+
     m = get_rot_mat(pyxel.angle_rad)
     p.bow.draw_pos = p.bow.pos - p.get_shoulder()
     p.bow.draw_pos = m * (p.bow.draw_pos)
@@ -50,6 +53,8 @@ def draw():
     for o in pyxel.objects:
         o.draw()
 
+    obj = pyxel.space.rock.body
+    pyxel.circ(*obj.position, 2, pyxel.COLOR_RED)
     
     draw_hud()
 
@@ -62,15 +67,19 @@ def draw_hud():
 
 
 def set_up():
+    pyxel.space = Space()
     pyxel.player1 = Player(15, 0, Sprite.BLUE)
+    
     pyxel.player2 = Player(195, 0, Sprite.RED)
     tree = PyxelObject(64 * 4 / 2 - Sprite.TREE.value.width / 2, 0, Sprite.TREE)
+    rock = Rock(120,20, Sprite.ROCK)
+    pyxel.space.add(rock.body, rock.shape)
+    pyxel.space.rock = rock
     pyxel.objects = [
         pyxel.player1,
         PyxelObject(1, 0, Sprite.GROUND_ARROW),
-        Arrow(45, 0),
         tree,
-        Arrow(150, 0, Sprite.RED_ARROW),
+        rock,
         pyxel.player2,
         PyxelObject(205, 0, Sprite.GROUND_ARROW),
     ]
