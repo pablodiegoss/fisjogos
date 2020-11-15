@@ -163,13 +163,20 @@ class Rock(PyxelObject):
         if y > GameConfig().height + 50:
             self.is_active = False
 
+
 class Tree(PyxelObject):
     def __init__(self, x, y):
         super().__init__(x, y, Sprite.TREE)
-        self.body = Body(mass=1, moment=1)
-        self.body.position = (x, y)
-        self.shape = Circle(self.body, Sprite.TREE.value.width / 2.4)
-        self.shape.elasticity = 0.1
+        # self.body = Body(mass=1,body_type=Body.DYNAMIC)
+        # self.body.elasticity = 0.1
+        # self.body.position = (x, y)
+        top = [(0,20),(20,0),(40,20)]
+        middle = [(0,20),(0,35),(40,20),(40,35)]
+        bottom = [(15,35),(25,35),(15,60),(25,60)] 
+        self.shapes.append(Poly(self.body, [*top]))
+        self.shapes.append(Poly(self.body, [*middle]))
+        self.shapes.append(Poly(self.body, [*bottom]))
+        pyxel.space.add(self.body, *self.shapes)
 
     def blit(self):
         return (*self.body.position, *self.sprite.value.as_tuple())
