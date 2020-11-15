@@ -1,8 +1,8 @@
 import pyxel
-from pymunk import Space, Transform
+from pymunk import Space
 from .models import *
 from .utils import *
-from math import cos, sin
+
 
 tile = lambda x: x * 8
 gc = GameConfig()
@@ -21,48 +21,32 @@ def get_mouse_angle():
     )
 
 
-def get_rot_mat(angle_rad):
-    cos_ = cos(angle_rad)
-    sin_ = sin(angle_rad)
-    return Transform(a=cos_, b=sin_, c=-sin_, d=cos_, tx=0, ty=0)
-
 
 def update():
     pyxel.angle, pyxel.angle_rad = get_mouse_angle()
-    if pyxel.btnp(pyxel.KEY_UP, period=3):
-        pyxel.force += 1
-        if pyxel.force > 100:
-            pyxel.force = 100
-    if pyxel.btnp(pyxel.KEY_DOWN, period=3):
-        pyxel.force -= 1
-        if pyxel.force < 0:
-            pyxel.force = 0
-    p = pyxel.player1
-
+    player = pyxel.player1
+    pyxel.force = edist((player.x,player.y),(pyxel.mouse_x,pyxel.mouse_y))
+    if pyxel.force >100:
+        pyxel.force = 100
     pyxel.space.rock.body.apply_force_at_world_point((0,40),(0,0))
+    for o in pyxel.objects:
+        o.update()
+    
     pyxel.space.step(1/GameConfig().fps)
-
-    m = get_rot_mat(pyxel.angle_rad)
-    p.bow.draw_pos = p.bow.pos - p.get_shoulder()
-    p.bow.draw_pos = m * (p.bow.draw_pos)
-    p.bow.draw_pos += p.get_shoulder()
 
 def draw():
     pyxel.cls(pyxel.COLOR_WHITE)
     pyxel.bltm(0, 0, 0, 0, 0, tile(4), tile(3), pyxel.COLOR_WHITE)
     for o in pyxel.objects:
-        o.draw()
-
-    obj = pyxel.space.rock.body
-    pyxel.circ(*obj.position, 2, pyxel.COLOR_RED)
+        o.draw(collisors=True)
     
     draw_hud()
 
 
 def draw_hud():
-    text = f'Angle = {"{:.3f}".format(pyxel.angle)} [mouse]'
+    text = f'Angle = {"{:.1f}".format(pyxel.angle)} [mouse]'
     pyxel.text(pyxel.player1.x + 20, pyxel.player1.y + 15, text, pyxel.COLOR_BLACK)
-    text = f"Force = {pyxel.force} [up|down]"
+    text = f'Force = {"{:.1f}".format(pyxel.force)} [mouse distance]'
     pyxel.text(pyxel.player1.x + 20, pyxel.player1.y + 22, text, pyxel.COLOR_BLACK)
 
 

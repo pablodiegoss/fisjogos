@@ -1,13 +1,18 @@
-
-
+from math import cos, sin, sqrt
+from pymunk import Transform
 
 def move_to_floor(pyxel_object):
     floor_height = 3
     pyxel_object.y = GameConfig().height - pyxel_object.height - floor_height
 
 
+def get_rot_mat(angle_rad):
+    cos_ = cos(angle_rad)
+    sin_ = sin(angle_rad)
+    return Transform(a=cos_, b=sin_, c=-sin_, d=cos_, tx=0, ty=0)
 
-
+def edist(p,q):
+    return sqrt(sum((px - qx) ** 2.0 for px, qx in zip(p, q)))
 
 class SingletonMeta(type):
     """

@@ -1,6 +1,7 @@
 import pyxel
 from enum import Enum
 from pymunk import Vec2d, Body, Circle
+from .utils import get_rot_mat
 
 class SpriteData:
     def __init__(self, sprite_page, sprite_x, sprite_y, width, height, color_alpha):
@@ -64,9 +65,16 @@ class PyxelObject:
     def blit(self):
         return (self.x, self.y, *self.sprite.value.as_tuple())
 
-    def draw(self):
+    def draw(self, collisors=None):
         pyxel.blt(*self.blit())
-
+    
+    def update(self):
+        pass
+    
+    def adjust(self, position):
+        width = self.sprite.value.width
+        height = self.sprite.value.height
+        return (position[0]+width/2, position[1]+height/2)
 
 class Bow(PyxelObject):
     def __init__(self, x, y):
@@ -114,7 +122,7 @@ class Player(PyxelObject):
         shoulder_position = Vec2d(self.x + self.width / 2, self.y + (self.height / 2) - 4)
         return shoulder_position
 
-    def draw(self):
+    def draw(self, collisors=None):
         super().draw()
         shoulder_position = self.get_shoulder()
 
@@ -127,14 +135,27 @@ class Player(PyxelObject):
         pyxel.line(*shoulder_position, *elbow_position, pyxel.COLOR_BLACK)
         pyxel.line(*elbow_position, *self.bow.get_string(), pyxel.COLOR_BLACK)
 
+    def update(self):
+        m = get_rot_mat(pyxel.angle_rad)
+        self.bow.draw_pos = self.bow.pos - self.get_shoulder()
+        self.bow.draw_pos = m * (self.bow.draw_pos)
+        self.bow.draw_pos += self.get_shoulder()
 
+
+
+    
 class Rock(PyxelObject):
     def __init__(self, x, y, sprite = Sprite.ROCK):
         super().__init__(x, y, sprite)
         self.body = Body(mass=1, moment=1)
         self.body.position = (x,y)
-        self.shape = Circle(self.body, 10)
+        self.shape = Circle(self.body, sprite.value.width/2.4)
         self.shape.elasticity = 0.1
+
     def blit(self):
         return (*self.body.position, *self.sprite.value.as_tuple())
 
+    def draw(self, collisors=None):
+        pyxel.blt(*self.blit())
+        if(collisors):
+            pyxel.circb(*(self.adjust(self.body.position)), self.shape.radius, pyxel.COLOR_RED)
