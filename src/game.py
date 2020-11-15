@@ -35,7 +35,7 @@ def update():
         impulse = (cos(pyxel.angle_rad) * force, sin(-pyxel.angle_rad) * force)
 
         rock.body.apply_impulse_at_world_point(impulse, player.slingshot.get_nock_position())
-        pyxel.space.add(rock.body, rock.shape)
+        pyxel.space.add(rock.body, *rock.shapes)
         pyxel.objects.append(rock)
 
     for rock in filter(lambda obj: isinstance(obj, Rock), pyxel.objects):
@@ -47,11 +47,10 @@ def update():
     # Delete deactivated objects
     deletable = list(filter(lambda o: not o.is_active, pyxel.objects))
     for o in deletable:
-        pyxel.space.remove([o.body, o.shape])
         pyxel.objects.remove(o)
+        pyxel.space.remove([o.body])
 
     pyxel.space.step(1 / GameConfig().fps)
-
 
 def draw():
     pyxel.cls(pyxel.COLOR_WHITE)
@@ -74,7 +73,7 @@ def set_up():
     pyxel.player1 = Player(15, 0, Sprite.BLUE)
 
     pyxel.player2 = Player(195, 0, Sprite.RED)
-    tree = PyxelObject(64 * 4 / 2 - Sprite.TREE.value.width / 2, 0, Sprite.TREE)
+    tree = Tree(64 * 4 / 2 - Sprite.TREE.value.width / 2, 0)
     
     pyxel.objects = [
         pyxel.player1,

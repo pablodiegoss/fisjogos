@@ -18,6 +18,22 @@ def get_mouse_pos():
     return Vec2d(pyxel.mouse_x, pyxel.mouse_y)
 
 
+def group_tri(seq):
+    x, y, *rest = seq
+    for z in rest:
+        yield (x, y, z)
+        y = z
+
+
+def draw_poly(shape, color):
+    for tri in group_tri(shape.get_vertices()):
+        coords = []
+        for v in tri:
+            x, y = v.rotated(shape.body.angle) + shape.body.position
+            coords.extend((x, y))
+        pyxel.trib(*coords, color)
+
+
 def edist(p, q):
     return sqrt(sum((px - qx) ** 2.0 for px, qx in zip(p, q)))
 

@@ -35,10 +35,9 @@ class Sprite(Enum):
 
 class PyxelObject:
     def __init__(self, x, y, sprite):
-        self.position = Vec2d(0, 0)
-        self.draw_pos = Vec2d(0, 0)
-        self.x = x
-        self.y = y
+        self.shapes = []
+        self.body = Body(body_type=Body.KINEMATIC)
+        self.body.position = (x, y)
         self.sprite = sprite
         self.width = sprite.value.width
         self.height = sprite.value.height
@@ -46,22 +45,22 @@ class PyxelObject:
 
     @property
     def x(self):
-        return self.position.x
+        return self.body.position[0]
 
     @x.setter
     def x(self, x):
-        self.position.x = x
+        self.body.position = (x, self.y)
 
     @property
     def y(self):
-        return self.position.y
+        return self.body.position[1]
 
     @y.setter
     def y(self, y):
-        self.position.y = y
+        self.body.position = (self.x, y)
 
     def blit(self):
-        return (self.x, self.y, *self.sprite.value.as_tuple())
+        return (*self.body.position, *self.sprite.value.as_tuple())
 
     def draw(self, collisors=None):
         pyxel.blt(*self.blit())

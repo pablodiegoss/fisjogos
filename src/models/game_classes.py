@@ -1,5 +1,7 @@
-from ..utils import get_rot_mat, GameConfig, get_mouse_pos
+from ..utils import get_rot_mat, GameConfig, get_mouse_pos, draw_poly
 from .pyxel_base import *
+from pymunk import Poly
+from math import sqrt
 
 
 class Slingshot(PyxelObject):
@@ -10,27 +12,27 @@ class Slingshot(PyxelObject):
 
     @property
     def x(self):
-        return self.position.x
+        return self.body.position[0]
 
     @x.setter
     def x(self, x):
-        self.position.x = x
+        self.body.position = (x, self.y)
         self.nock_position = self.get_nock_origin()
 
     @property
     def y(self):
-        return self.position.y
+        return self.body.position[1]
 
     @y.setter
     def y(self, y):
-        self.position.y = y
+        self.body.position = (self.x, y)
         self.nock_position = self.get_nock_origin()
 
     def get_handle(self):
         return Vec2d(self.x + self.width / 2, self.y + 2 + self.height / 2)
 
     def get_nock_origin(self):
-        return self.position + self.nock_offset
+        return self.body.position + self.nock_offset
 
     def left_stick(self):
         return self.get_nock_origin() - Vec2d(3, 0)
@@ -42,7 +44,11 @@ class Slingshot(PyxelObject):
         return self.nock_position
 
     def blit(self):
-        return (self.position.x, self.position.y, *self.sprite.value.as_tuple())
+        return (
+            self.body.position.x,
+            self.body.position.y,
+            *self.sprite.value.as_tuple(),
+        )
 
     def draw(self, collisors=False):
         super().draw()
@@ -73,30 +79,36 @@ class Player(PyxelObject):
     slingshot_offset = Vec2d(12, 0)
 
     def __init__(self, x, y, sprite):
-        self.slingshot = Slingshot(0, 0)
+        super().__init__(x, y, sprite)
         self.flipped = False
+        self.slingshot = Slingshot(x, y)
         if sprite.value == Sprite.RED.value:
             self.flipped = True
-            self.slingshot_offset = (self.slingshot_offset[0] * -1, self.slingshot_offset[1])
+            self.slingshot_offset = (
+                self.slingshot_offset[0] * -1,
+                self.slingshot_offset[1],
+            )
             self.slingshot.sprite = Sprite.RED_SLING
-        super().__init__(x, y, sprite)
+        self.slingshot.body.position = (
+            self.slingshot.body.position + self.slingshot_offset
+        )
 
     @property
     def x(self):
-        return self.position.x
+        return self.body.position[0]
 
     @x.setter
     def x(self, x):
-        self.position.x = x
+        self.body.position = (x, self.y)
         self.slingshot.x = x + self.slingshot_offset[0]
 
     @property
     def y(self):
-        return self.position.y
+        return self.body.position[1]
 
     @y.setter
     def y(self, y):
-        self.position.y = y
+        self.body.position = (self.x, y)
         self.slingshot.y = y + self.slingshot_offset[1]
 
     def get_shoulder(self):
@@ -131,19 +143,18 @@ class Rock(PyxelObject):
     def __init__(self, x, y):
         super().__init__(x, y, Sprite.ROCK)
         self.body = Body(mass=1, moment=1)
+        self.body.elasticity = 0.1
         self.body.position = (x, y)
-        self.shape = Circle(self.body, Sprite.ROCK.value.width / 2.4)
-        self.shape.elasticity = 0.1
+        self.shapes.append(Circle(self.body, Sprite.ROCK.value.width/2))
 
     def blit(self):
-        return (*self.body.position, *self.sprite.value.as_tuple())
+        return (*(self.body.position - Vec2d(4,3)), *self.sprite.value.as_tuple())
 
     def draw(self, collisors=None):
         pyxel.blt(*self.blit())
         if collisors:
-            pyxel.circb(
-                *(self.adjust(self.body.position)), self.shape.radius, pyxel.COLOR_RED
-            )
+            for shape in self.shapes:
+                pyxel.circb(*self.body.position, shape.radius, pyxel.COLOR_RED)
 
     def update(self):
         x, y = self.body.position
@@ -166,13 +177,5 @@ class Tree(PyxelObject):
     def draw(self, collisors=None):
         pyxel.blt(*self.blit())
         if collisors:
-            pyxel.circb(
-                *(self.adjust(self.body.position)), self.shape.radius, pyxel.COLOR_RED
-            )
-
-    def update(self):
-        x, y = self.body.position
-        if x < -50 or x > GameConfig().width + 50:
-            self.is_active = False
-        if y > GameConfig().height + 50:
-            self.is_active = False
+            for shape in self.shapes:
+                draw_poly(shape, pyxel.COLOR_RED)
