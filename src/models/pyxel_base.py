@@ -2,6 +2,7 @@ import pyxel
 from enum import Enum
 from pymunk import Vec2d, Body, Circle
 
+
 class SpriteData:
     def __init__(self, sprite_page, sprite_x, sprite_y, width, height, color_alpha):
         self.sprite_page = sprite_page
@@ -32,46 +33,48 @@ class Sprite(Enum):
     GROUND_ARROW = SpriteData(0, 32, 21, 16, 11, pyxel.COLOR_WHITE)
     RED_ARROW = SpriteData(0, 33, 0, 15, 5, pyxel.COLOR_WHITE)
     BLUE_ARROW = SpriteData(0, 33, 7, 15, 5, pyxel.COLOR_WHITE)
-    ROCK = SpriteData(0,18,34,10,8,pyxel.COLOR_PURPLE)
+    ROCK = SpriteData(0, 18, 34, 10, 8, pyxel.COLOR_PURPLE)
+    BLUE_SLING = SpriteData(0, 36, 32, 9, 16, pyxel.COLOR_WHITE)
+    RED_SLING = SpriteData(0, 36, 48, 9, 16, pyxel.COLOR_WHITE)
 
 
 class PyxelObject:
     def __init__(self, x, y, sprite):
-        self.pos = Vec2d(0,0)
-        self.draw_pos = Vec2d(0,0)
+        self.position = Vec2d(0, 0)
+        self.draw_pos = Vec2d(0, 0)
         self.x = x
         self.y = y
         self.sprite = sprite
         self.width = sprite.value.width
         self.height = sprite.value.height
+        self.is_active = True
 
     @property
     def x(self):
-        return self.pos.x
+        return self.position.x
 
     @x.setter
     def x(self, x):
-        self.pos.x = x
+        self.position.x = x
 
     @property
     def y(self):
-        return self.pos.y
+        return self.position.y
 
     @y.setter
     def y(self, y):
-        self.pos.y = y
+        self.position.y = y
 
     def blit(self):
         return (self.x, self.y, *self.sprite.value.as_tuple())
 
     def draw(self, collisors=None):
         pyxel.blt(*self.blit())
-    
+
     def update(self):
         pass
-    
+
     def adjust(self, position):
         width = self.sprite.value.width
         height = self.sprite.value.height
-        return (position[0]+width/2, position[1]+height/2)
-
+        return (position[0] + width / 2, position[1] + height / 2)

@@ -1,5 +1,7 @@
-from math import cos, sin, sqrt
-from pymunk import Transform
+from math import cos, sin, sqrt, pi
+from pymunk import Transform, Vec2d
+import pyxel
+
 
 def move_to_floor(pyxel_object):
     floor_height = 3
@@ -11,8 +13,18 @@ def get_rot_mat(angle_rad):
     sin_ = sin(angle_rad)
     return Transform(a=cos_, b=sin_, c=-sin_, d=cos_, tx=0, ty=0)
 
-def edist(p,q):
+
+def get_mouse_pos():
+    return Vec2d(pyxel.mouse_x, pyxel.mouse_y)
+
+
+def edist(p, q):
     return sqrt(sum((px - qx) ** 2.0 for px, qx in zip(p, q)))
+
+
+def invertAngle(angle):
+    return (angle + pi) % (2 * pi)
+
 
 class SingletonMeta(type):
     """
@@ -33,6 +45,7 @@ class SingletonMeta(type):
             cls._instances[cls] = instance
         return cls._instances[cls]
 
+
 class GameConfig(metaclass=SingletonMeta):
     width = 0
     height = 0
@@ -40,5 +53,3 @@ class GameConfig(metaclass=SingletonMeta):
 
     def get_screen_size(self):
         return (self.width, self.height)
-
-

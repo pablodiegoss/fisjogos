@@ -7,7 +7,7 @@ import pyxel
 
 FPS = 60
 PYXEL_TILE_SIZE = 64
-SCREEN_SIZE = (PYXEL_TILE_SIZE*4, PYXEL_TILE_SIZE*3)
+SCREEN_SIZE = (PYXEL_TILE_SIZE * 4, PYXEL_TILE_SIZE * 3)
 
 
 if __name__ == "__main__":

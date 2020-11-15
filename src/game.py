@@ -2,7 +2,7 @@ import pyxel
 from pymunk import Space
 from .models import *
 from .utils import *
-
+from math import cos, sin
 
 tile = lambda x: x * 8
 gc = GameConfig()
@@ -21,25 +21,44 @@ def get_mouse_angle():
     )
 
 
-
 def update():
     pyxel.angle, pyxel.angle_rad = get_mouse_angle()
     player = pyxel.player1
-    pyxel.force = edist((player.x,player.y),(pyxel.mouse_x,pyxel.mouse_y))
-    if pyxel.force >100:
+    pyxel.force = edist((player.x, player.y), (pyxel.mouse_x, pyxel.mouse_y))
+    if pyxel.force > 100:
         pyxel.force = 100
-    pyxel.space.rock.body.apply_force_at_world_point((0,40),(0,0))
+
+    if pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON, period=1):
+        player = pyxel.player1
+        rock = Rock(*player.bow.get_nock_position())
+        force = pyxel.force * 1.5
+        impulse = (cos(pyxel.angle_rad) * force, sin(-pyxel.angle_rad) * force)
+
+        rock.body.apply_impulse_at_world_point(impulse, player.bow.get_nock_position())
+        pyxel.space.add(rock.body, rock.shape)
+        pyxel.objects.append(rock)
+
+    for rock in filter(lambda o: isinstance(o, Rock), pyxel.objects):
+        rock.body.apply_force_at_world_point((0, 40), (0, 0))
+
     for o in pyxel.objects:
         o.update()
-    
-    pyxel.space.step(1/GameConfig().fps)
+
+    # Delete deactivated objects
+    deletable = list(filter(lambda o: not o.is_active, pyxel.objects))
+    for o in deletable:
+        pyxel.space.remove([o.body, o.shape])
+        pyxel.objects.remove(o)
+
+    pyxel.space.step(1 / GameConfig().fps)
+
 
 def draw():
     pyxel.cls(pyxel.COLOR_WHITE)
     pyxel.bltm(0, 0, 0, 0, 0, tile(4), tile(3), pyxel.COLOR_WHITE)
     for o in pyxel.objects:
         o.draw(collisors=True)
-    
+
     draw_hud()
 
 
@@ -53,12 +72,12 @@ def draw_hud():
 def set_up():
     pyxel.space = Space()
     pyxel.player1 = Player(15, 0, Sprite.BLUE)
-    
+
     pyxel.player2 = Player(195, 0, Sprite.RED)
     tree = PyxelObject(64 * 4 / 2 - Sprite.TREE.value.width / 2, 0, Sprite.TREE)
-    rock = Rock(120,20, Sprite.ROCK)
+    rock = Rock(120, 20)
     pyxel.space.add(rock.body, rock.shape)
-    pyxel.space.rock = rock
+
     pyxel.objects = [
         pyxel.player1,
         PyxelObject(1, 0, Sprite.GROUND_ARROW),
