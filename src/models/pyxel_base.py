@@ -27,12 +27,7 @@ class Sprite(Enum):
     # Sprite Page, Sprite X, Sprite Y, Width, Height, Color Alpha.
     BLUE = SpriteData(0, 3, 3, 10, 28, 2)
     RED = SpriteData(0, 19, 3, 10, 28, 2)
-    BOW = SpriteData(0, 0, 32, 13, 17, pyxel.COLOR_WHITE)
-    BOW_INVERTED = SpriteData(0, 0, 32, -13, 17, pyxel.COLOR_WHITE)
     TREE = SpriteData(0, 60, 0, 39, 64, pyxel.COLOR_WHITE)
-    GROUND_ARROW = SpriteData(0, 32, 21, 16, 11, pyxel.COLOR_WHITE)
-    RED_ARROW = SpriteData(0, 33, 0, 15, 5, pyxel.COLOR_WHITE)
-    BLUE_ARROW = SpriteData(0, 33, 7, 15, 5, pyxel.COLOR_WHITE)
     ROCK = SpriteData(0, 18, 34, 10, 8, pyxel.COLOR_PURPLE)
     BLUE_SLING = SpriteData(0, 36, 32, 9, 16, pyxel.COLOR_WHITE)
     RED_SLING = SpriteData(0, 36, 48, 9, 16, pyxel.COLOR_WHITE)

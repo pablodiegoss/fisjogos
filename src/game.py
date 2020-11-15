@@ -30,15 +30,15 @@ def update():
 
     if pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON, period=1):
         player = pyxel.player1
-        rock = Rock(*player.bow.get_nock_position())
+        rock = Rock(*player.slingshot.get_nock_position())
         force = pyxel.force * 1.5
         impulse = (cos(pyxel.angle_rad) * force, sin(-pyxel.angle_rad) * force)
 
-        rock.body.apply_impulse_at_world_point(impulse, player.bow.get_nock_position())
+        rock.body.apply_impulse_at_world_point(impulse, player.slingshot.get_nock_position())
         pyxel.space.add(rock.body, rock.shape)
         pyxel.objects.append(rock)
 
-    for rock in filter(lambda o: isinstance(o, Rock), pyxel.objects):
+    for rock in filter(lambda obj: isinstance(obj, Rock), pyxel.objects):
         rock.body.apply_force_at_world_point((0, 40), (0, 0))
 
     for o in pyxel.objects:
@@ -75,16 +75,11 @@ def set_up():
 
     pyxel.player2 = Player(195, 0, Sprite.RED)
     tree = PyxelObject(64 * 4 / 2 - Sprite.TREE.value.width / 2, 0, Sprite.TREE)
-    rock = Rock(120, 20)
-    pyxel.space.add(rock.body, rock.shape)
-
+    
     pyxel.objects = [
         pyxel.player1,
-        PyxelObject(1, 0, Sprite.GROUND_ARROW),
         tree,
-        rock,
         pyxel.player2,
-        PyxelObject(205, 0, Sprite.GROUND_ARROW),
     ]
     for o in pyxel.objects:
         move_to_floor(o)
