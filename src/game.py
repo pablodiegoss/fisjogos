@@ -1,5 +1,5 @@
 import pyxel
-from pymunk import Space
+from pymunk import Space, Segment
 from .models import *
 from .utils import *
 from math import cos, sin
@@ -28,18 +28,23 @@ def update():
     if pyxel.force > 100:
         pyxel.force = 100
 
-    if pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON, period=1):
+    if pyxel.btnp(pyxel.KEY_C, period=100):
+        pyxel.collisors = not pyxel.collisors
+
+    if pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON, period=100):
         player = pyxel.player1
         rock = Rock(*player.slingshot.get_nock_position())
         force = pyxel.force * 1.5
         impulse = (cos(pyxel.angle_rad) * force, sin(-pyxel.angle_rad) * force)
 
-        rock.body.apply_impulse_at_world_point(impulse, player.slingshot.get_nock_position())
+        rock.body.apply_impulse_at_world_point(
+            impulse, player.slingshot.get_nock_position()
+        )
         pyxel.space.add(rock.body, *rock.shapes)
         pyxel.objects.append(rock)
 
     for rock in filter(lambda obj: isinstance(obj, Rock), pyxel.objects):
-        rock.body.apply_force_at_world_point((0, 40), (0, 0))
+        rock.body.apply_force_at_world_point((0, 80), (0, 0))
 
     for o in pyxel.objects:
         o.update()
@@ -48,15 +53,20 @@ def update():
     deletable = list(filter(lambda o: not o.is_active, pyxel.objects))
     for o in deletable:
         pyxel.objects.remove(o)
-        pyxel.space.remove([o.body])
+        pyxel.space.remove([o.body, *o.shapes])
 
     pyxel.space.step(1 / GameConfig().fps)
+
 
 def draw():
     pyxel.cls(pyxel.COLOR_WHITE)
     pyxel.bltm(0, 0, 0, 0, 0, tile(4), tile(3), pyxel.COLOR_WHITE)
+
+    if pyxel.collisors:
+        pyxel.line(*pyxel.floor.a, *pyxel.floor.b, pyxel.COLOR_RED)
+
     for o in pyxel.objects:
-        o.draw(collisors=True)
+        o.draw(collisors=pyxel.collisors)
 
     draw_hud()
 
@@ -68,13 +78,21 @@ def draw_hud():
     pyxel.text(pyxel.player1.x + 20, pyxel.player1.y + 22, text, pyxel.COLOR_BLACK)
 
 
+
 def set_up():
     pyxel.space = Space()
-    pyxel.player1 = Player(15, 0, Sprite.BLUE)
+    pyxel.space.damping = 0.8
+    pyxel.collisors = True
 
+    line = Body(body_type=Body.STATIC)
+    pyxel.floor = Segment(
+        line, (-150, GameConfig().height - 1), (450, GameConfig().height - 1), 2
+    )
+    pyxel.space.add(pyxel.floor)
+
+    pyxel.player1 = Player(15, 0, Sprite.BLUE)
     pyxel.player2 = Player(195, 0, Sprite.RED)
     tree = Tree(64 * 4 / 2 - Sprite.TREE.value.width / 2, 0)
-    
     pyxel.objects = [
         pyxel.player1,
         tree,

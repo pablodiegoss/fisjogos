@@ -142,7 +142,7 @@ class Player(PyxelObject):
 class Rock(PyxelObject):
     def __init__(self, x, y):
         super().__init__(x, y, Sprite.ROCK)
-        self.body = Body(mass=1, moment=1)
+        self.body = Body(mass=4, moment=1)
         self.body.elasticity = 0.1
         self.body.position = (x, y)
         self.shapes.append(Circle(self.body, Sprite.ROCK.value.width/2))
@@ -167,16 +167,21 @@ class Rock(PyxelObject):
 class Tree(PyxelObject):
     def __init__(self, x, y):
         super().__init__(x, y, Sprite.TREE)
-        # self.body = Body(mass=1,body_type=Body.DYNAMIC)
-        # self.body.elasticity = 0.1
+        # self.body = Body(body_type=Body.STATIC)
         # self.body.position = (x, y)
         top = [(0,20),(20,0),(40,20)]
+        top = Poly(self.body, [*top])
+        top.elasticity = 0.1
         middle = [(0,20),(0,35),(40,20),(40,35)]
+        middle = Poly(self.body, [*middle])
+        middle.elasticity = 0.1
         bottom = [(15,35),(25,35),(15,60),(25,60)] 
-        self.shapes.append(Poly(self.body, [*top]))
-        self.shapes.append(Poly(self.body, [*middle]))
-        self.shapes.append(Poly(self.body, [*bottom]))
-        pyxel.space.add(self.body, *self.shapes)
+        bottom = Poly(self.body, [*bottom])
+        bottom.elasticity = 1
+        self.shapes.append(top)
+        self.shapes.append(middle)
+        self.shapes.append(bottom)
+        pyxel.space.add(*self.shapes)
 
     def blit(self):
         return (*self.body.position, *self.sprite.value.as_tuple())

@@ -68,7 +68,3 @@ class PyxelObject:
     def update(self):
         pass
 
-    def adjust(self, position):
-        width = self.sprite.value.width
-        height = self.sprite.value.height
-        return (position[0] + width / 2, position[1] + height / 2)
