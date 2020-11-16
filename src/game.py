@@ -77,7 +77,13 @@ def draw_hud():
     text = f'Force = {"{:.1f}".format(pyxel.force)} [mouse distance]'
     pyxel.text(pyxel.player1.x + 20, pyxel.player1.y + 22, text, pyxel.COLOR_BLACK)
 
-
+    draw_hp_bar("P1", pyxel.player1.life, 1,8)
+    draw_hp_bar("P2", pyxel.player1.life, 190,8)
+    
+def draw_hp_bar(name,player_life,x,y):
+    pyxel.text(x, y, name, pyxel.COLOR_BLACK)
+    pyxel.rect(x+8,y-3,51,11,pyxel.COLOR_BLACK)
+    pyxel.rect(x+9,y-2,49*(player_life/100),9,pyxel.COLOR_GREEN)
 
 def set_up():
     pyxel.space = Space()

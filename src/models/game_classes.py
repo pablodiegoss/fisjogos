@@ -80,6 +80,7 @@ class Player(PyxelObject):
 
     def __init__(self, x, y, sprite):
         super().__init__(x, y, sprite)
+        self.life = 100
         self.flipped = False
         self.slingshot = Slingshot(x, y)
         if sprite.value == Sprite.RED.value:
