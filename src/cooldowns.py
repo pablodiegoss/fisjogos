@@ -2,9 +2,11 @@ from .utils import SingletonMeta
 from time import time
 from enum import Enum
 
+
 class TimedEvent(Enum):
     WIND_CHANGE = 20
     SHOOT = 1
+    CAMERA = 0.1
 
 
 class Cooldown(metaclass=SingletonMeta):

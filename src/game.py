@@ -34,17 +34,27 @@ def update():
         pyxel.collisors = not pyxel.collisors
 
     if pyxel.btnp(pyxel.KEY_J, period=2):
-        pyxel.camera_offset += (+3,0)
-        if tuple(pyxel.camera_offset) > (399,0):
-            pyxel.camera_offset = Vec2d(399,0)
+        pyxel.camera_offset += (+3, 0)
+        if tuple(pyxel.camera_offset) > (399, 0):
+            pyxel.camera_offset = Vec2d(399, 0)
 
     if pyxel.btnp(pyxel.KEY_K, period=2):
-        pyxel.camera_offset += (-3,0)
-        if tuple(pyxel.camera_offset) < (-430,0):
-            pyxel.camera_offset = Vec2d(-430,0)
-        
+        pyxel.camera_offset += (-3, 0)
+        if tuple(pyxel.camera_offset) < (-430, 0):
+            pyxel.camera_offset = Vec2d(-430, 0)
 
-
+    if pyxel.btnp(pyxel.KEY_U, period=2):
+        pyxel.wind.direction += (1, 0)
+        print(pyxel.wind.direction)
+    if pyxel.btnp(pyxel.KEY_I, period=2):
+        pyxel.wind.direction += (0, 1)
+        print(pyxel.wind.direction)
+    if pyxel.btnp(pyxel.KEY_N, period=2):
+        pyxel.wind.direction += (-1, 0)
+        print(pyxel.wind.direction)
+    if pyxel.btnp(pyxel.KEY_M, period=2):
+        pyxel.wind.direction += (0, -1)
+        print(pyxel.wind.direction)
 
     if pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON, period=100):
         player = pyxel.player1
@@ -75,7 +85,15 @@ def update():
 
 def draw():
     pyxel.cls(pyxel.COLOR_WHITE)
-    pyxel.bltm(*((-400,0) + pyxel.camera_offset), 0, 0, 0, tile(17), tile(3), pyxel.COLOR_WHITE)
+    pyxel.bltm(
+        *((-400, 0) + pyxel.camera_offset),
+        0,
+        0,
+        0,
+        tile(17),
+        tile(3),
+        pyxel.COLOR_WHITE,
+    )
 
     if pyxel.collisors:
         pyxel.line(*pyxel.floor.a, *pyxel.floor.b, pyxel.COLOR_RED)
@@ -91,6 +109,8 @@ def draw_hud():
     pyxel.text(pyxel.player1.x + 20, pyxel.player1.y + 15, text, pyxel.COLOR_BLACK)
     text = f'Force = {"{:.1f}".format(pyxel.force)} [mouse distance]'
     pyxel.text(pyxel.player1.x + 20, pyxel.player1.y + 22, text, pyxel.COLOR_BLACK)
+
+    pyxel.wind.draw(GameConfig().width / 2, 12)
 
     draw_hp_bar("P1", pyxel.player1.life, 1, 8)
     draw_hp_bar("P2", pyxel.player1.life, 195, 8)
@@ -108,13 +128,17 @@ def set_up():
     pyxel.space.gravity = (0, 60)
     pyxel.collisors = True
 
-    line = Body(body_type=Body.STATIC)
-    pyxel.floor = Segment(
-        line, (-150, GameConfig().height - 1), (450, GameConfig().height - 1), 2
+    floor = Body(body_type=Body.STATIC)
+    floor_shape = Segment(
+        floor, (-700, GameConfig().height - 1), (700, GameConfig().height - 1), 2
     )
-    pyxel.space.add(pyxel.floor)
+    floor_shape.elasticity = 0.7
+    pyxel.floor = floor_shape
+    pyxel.space.add(floor, floor_shape)
 
     pyxel.camera_offset = Vec2d(0, 0)
+
+    pyxel.wind = Wind()
 
     pyxel.player1 = Player(15, 0, Sprite.BLUE)
     pyxel.player2 = Player(195, 0, Sprite.RED)

@@ -2,6 +2,8 @@ from ..utils import get_rot_mat, GameConfig, get_mouse_pos, draw_poly
 from .pyxel_base import *
 from pymunk import Poly
 from math import sqrt
+from random import randint
+import copy
 
 
 class Slingshot(PyxelObject):
@@ -45,8 +47,16 @@ class Slingshot(PyxelObject):
 
     def draw(self, camera_offset, collisors=False):
         super().draw(camera_offset, collisors)
-        pyxel.line(*(self.nock_position + camera_offset), *(self.left_stick() + camera_offset), pyxel.COLOR_BLACK)
-        pyxel.line(*(self.nock_position + camera_offset), *(self.right_stick()+ camera_offset), pyxel.COLOR_BLACK)
+        pyxel.line(
+            *(self.nock_position + camera_offset),
+            *(self.left_stick() + camera_offset),
+            pyxel.COLOR_BLACK
+        )
+        pyxel.line(
+            *(self.nock_position + camera_offset),
+            *(self.right_stick() + camera_offset),
+            pyxel.COLOR_BLACK
+        )
         if collisors:
             pyxel.circb(*(self.get_nock_position() + camera_offset), 2, pyxel.COLOR_RED)
 
@@ -116,7 +126,11 @@ class Player(PyxelObject):
         shoulder_position = self.get_shoulder() + camera_offset
 
         # slingshot arm
-        pyxel.line(*shoulder_position, *(self.slingshot.get_handle() + camera_offset), pyxel.COLOR_BLACK)
+        pyxel.line(
+            *shoulder_position,
+            *(self.slingshot.get_handle() + camera_offset),
+            pyxel.COLOR_BLACK
+        )
         self.slingshot.draw(camera_offset, collisors)
 
         # # string arm
@@ -137,19 +151,22 @@ class Rock(PyxelObject):
     def __init__(self, x, y):
         super().__init__(x, y, Sprite.ROCK)
         self.body = Body(mass=3, moment=1)
-        self.body.elasticity = 0.1
         self.body.position = (x, y)
-        self.shapes.append(Circle(self.body, Sprite.ROCK.value.width / 2))
+        shape = Circle(self.body, Sprite.ROCK.value.width / 2)
+        shape.elasticity = 0.8
+        self.shapes.append(shape)
 
     def blit(self, camera_offset):
-        return (*(self.body.position - Vec2d(4, 3) + camera_offset), *self.sprite.value.as_tuple())
-
+        return (
+            *(self.body.position - Vec2d(4, 3) + camera_offset),
+            *self.sprite.value.as_tuple(),
+        )
 
     def update(self):
         x, y = self.body.position
-        if x < -50 or x > GameConfig().width + 50:
+        if x < -700 or x > 700:
             self.is_active = False
-        if y > GameConfig().height + 50:
+        if y > GameConfig().height + 650:
             self.is_active = False
 
 
@@ -171,3 +188,63 @@ class Tree(PyxelObject):
         self.shapes.append(middle)
         self.shapes.append(bottom)
         pyxel.space.add(*self.shapes)
+
+
+class Wind:
+    def __init__(self):
+        self.direction = Vec2d(0, 0)
+
+    def get_wind(self):
+        return self.direction
+
+    def change(self):
+        self.direction = Vec2d(randint(-100, 100), randint(-100, 100))
+
+    def get_status(self):
+        if max(self.direction) > 66:
+            return "Strong"
+        elif max(self.direction) > 33:
+            return "Medium"
+        else:
+            return "Weak"
+
+    def draw(self, x, y):
+        sprite = self.get_arrow_direction()
+        pyxel.blt(
+            x - abs(sprite.width) / 2, y - abs(sprite.height) / 2, *sprite.as_tuple()
+        )
+        status = self.get_status()
+        pyxel.text(x + 10, y - 2, status, pyxel.COLOR_BLACK)
+
+    def get_arrow_direction(self):
+        x, y = self.direction
+
+        def x_direction(sprite):
+            if x > 0:
+                return sprite
+            else:
+                sprite.width = -sprite.width
+                return sprite
+
+        def y_direction(sprite):
+            if y > 0:
+                return sprite
+            else:
+                sprite.height = -sprite.height
+                return sprite
+
+        minimum_wind = 20
+        if abs(x) < minimum_wind and abs(y) < minimum_wind:
+            return Sprite.CIRCLE.value
+        elif abs(x) < minimum_wind or abs(y) < minimum_wind:
+            if abs(x) > abs(y):
+                sprite = copy.copy(Sprite.HORIZONTAL_ARROW.value)
+                return x_direction(sprite)
+            else:
+                sprite = copy.copy(Sprite.VERTICAL_ARROW.value)
+                return y_direction(sprite)
+        else:
+            sprite = copy.copy(Sprite.DIAGONAL_ARROW.value)
+            sprite = x_direction(sprite)
+            sprite = y_direction(sprite)
+            return sprite

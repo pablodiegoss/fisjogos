@@ -32,6 +32,10 @@ class Sprite(Enum):
     ROCK = SpriteData(0, 18, 34, 10, 8, pyxel.COLOR_PURPLE)
     BLUE_SLING = SpriteData(0, 36, 32, 9, 16, pyxel.COLOR_WHITE)
     RED_SLING = SpriteData(0, 36, 48, 9, 16, pyxel.COLOR_WHITE)
+    HORIZONTAL_ARROW = SpriteData(0, 1, 66, 15, 12, pyxel.COLOR_WHITE)
+    VERTICAL_ARROW = SpriteData(0, 34, 65, 12, 15, pyxel.COLOR_WHITE)
+    DIAGONAL_ARROW = SpriteData(0, 21, 69, 11, 11, pyxel.COLOR_WHITE)
+    CIRCLE = SpriteData(0, 48, 64, 16, 16, pyxel.COLOR_WHITE)
 
 
 class PyxelObject:
@@ -63,17 +67,24 @@ class PyxelObject:
     def blit(self, camera_offset):
         return (*(self.body.position + camera_offset), *self.sprite.value.as_tuple())
 
-    def draw(self, camera_offset,collisors=None):
+    def draw(self, camera_offset, collisors=None):
         pyxel.blt(*self.blit(camera_offset))
         if collisors:
             for shape in self.shapes:
                 if isinstance(shape, Circle):
-                    pyxel.circb(*(self.body.position + camera_offset), shape.radius, pyxel.COLOR_RED)
+                    pyxel.circb(
+                        *(self.body.position + camera_offset),
+                        shape.radius,
+                        pyxel.COLOR_RED
+                    )
                 elif isinstance(shape, Segment):
-                    pyxel.line(*(shape.a + camera_offset), *(shape.b + camera_offset), pyxel.COLOR_RED)
+                    pyxel.line(
+                        *(shape.a + camera_offset),
+                        *(shape.b + camera_offset),
+                        pyxel.COLOR_RED
+                    )
                 elif isinstance(shape, Poly):
                     draw_poly(shape, camera_offset, pyxel.COLOR_RED)
 
     def update(self):
         pass
-
