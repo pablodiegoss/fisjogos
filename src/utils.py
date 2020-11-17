@@ -15,7 +15,7 @@ def get_rot_mat(angle_rad):
 
 
 def get_mouse_pos():
-    return Vec2d(pyxel.mouse_x, pyxel.mouse_y)
+    return Vec2d(pyxel.mouse_x, pyxel.mouse_y) - pyxel.camera_offset
 
 
 def group_tri(seq):
@@ -25,11 +25,11 @@ def group_tri(seq):
         y = z
 
 
-def draw_poly(shape, color):
+def draw_poly(shape, camera_offset, color):
     for tri in group_tri(shape.get_vertices()):
         coords = []
         for v in tri:
-            x, y = v.rotated(shape.body.angle) + shape.body.position
+            x, y = v.rotated(shape.body.angle) + shape.body.position + camera_offset
             coords.extend((x, y))
         pyxel.trib(*coords, color)
 

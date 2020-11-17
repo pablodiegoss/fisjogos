@@ -66,7 +66,7 @@ def draw():
         pyxel.line(*pyxel.floor.a, *pyxel.floor.b, pyxel.COLOR_RED)
 
     for o in pyxel.objects:
-        o.draw(collisors=pyxel.collisors)
+        o.draw(pyxel.camera_offset, collisors=pyxel.collisors)
 
     draw_hud()
 
@@ -98,7 +98,7 @@ def set_up():
         line, (-150, GameConfig().height - 1), (450, GameConfig().height - 1), 2
     )
     pyxel.space.add(pyxel.floor)
-
+    pyxel.camera_offset = (20, 0)
     pyxel.player1 = Player(15, 0, Sprite.BLUE)
     pyxel.player2 = Player(195, 0, Sprite.RED)
     tree = Tree(64 * 4 / 2 - Sprite.TREE.value.width / 2, 0)

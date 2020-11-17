@@ -43,19 +43,12 @@ class Slingshot(PyxelObject):
     def get_nock_position(self):
         return self.nock_position
 
-    def blit(self):
-        return (
-            self.body.position.x,
-            self.body.position.y,
-            *self.sprite.value.as_tuple(),
-        )
-
-    def draw(self, collisors=False):
-        super().draw()
-        pyxel.line(*self.nock_position, *self.left_stick(), pyxel.COLOR_BLACK)
-        pyxel.line(*self.nock_position, *self.right_stick(), pyxel.COLOR_BLACK)
+    def draw(self, camera_offset, collisors=False):
+        super().draw(camera_offset, collisors)
+        pyxel.line(*(self.nock_position + camera_offset), *(self.left_stick() + camera_offset), pyxel.COLOR_BLACK)
+        pyxel.line(*(self.nock_position + camera_offset), *(self.right_stick()+ camera_offset), pyxel.COLOR_BLACK)
         if collisors:
-            pyxel.circb(*self.get_nock_position(), 2, pyxel.COLOR_RED)
+            pyxel.circb(*(self.get_nock_position() + camera_offset), 2, pyxel.COLOR_RED)
 
     def update(self):
         mouse_pos = get_mouse_pos()
@@ -118,17 +111,17 @@ class Player(PyxelObject):
         )
         return shoulder_position
 
-    def draw(self, collisors=None):
-        super().draw()
-        shoulder_position = self.get_shoulder()
+    def draw(self, camera_offset, collisors=None):
+        super().draw(camera_offset, collisors)
+        shoulder_position = self.get_shoulder() + camera_offset
 
         # slingshot arm
-        pyxel.line(*shoulder_position, *self.slingshot.get_handle(), pyxel.COLOR_BLACK)
-        self.slingshot.draw(collisors)
+        pyxel.line(*shoulder_position, *(self.slingshot.get_handle() + camera_offset), pyxel.COLOR_BLACK)
+        self.slingshot.draw(camera_offset, collisors)
 
         # # string arm
         elbow_x = self.x - 2 if not self.flipped else self.x + 11
-        elbow_position = (elbow_x, shoulder_position[1] + 2)
+        elbow_position = (elbow_x, shoulder_position[1] + 2) + camera_offset
         # pyxel.line(*shoulder_position, *elslingshot_position, pyxel.COLOR_BLACK)
         # pyxel.line(*elslingshot_position, *self.slingshot.get_nock_position(), pyxel.COLOR_BLACK)
 
@@ -143,19 +136,14 @@ class Player(PyxelObject):
 class Rock(PyxelObject):
     def __init__(self, x, y):
         super().__init__(x, y, Sprite.ROCK)
-        self.body = Body(mass=4, moment=1)
+        self.body = Body(mass=3, moment=1)
         self.body.elasticity = 0.1
         self.body.position = (x, y)
-        self.shapes.append(Circle(self.body, Sprite.ROCK.value.width/2))
+        self.shapes.append(Circle(self.body, Sprite.ROCK.value.width / 2))
 
-    def blit(self):
-        return (*(self.body.position - Vec2d(4,3)), *self.sprite.value.as_tuple())
+    def blit(self, camera_offset):
+        return (*(self.body.position - Vec2d(4, 3) + camera_offset), *self.sprite.value.as_tuple())
 
-    def draw(self, collisors=None):
-        pyxel.blt(*self.blit())
-        if collisors:
-            for shape in self.shapes:
-                pyxel.circb(*self.body.position, shape.radius, pyxel.COLOR_RED)
 
     def update(self):
         x, y = self.body.position
@@ -170,25 +158,16 @@ class Tree(PyxelObject):
         super().__init__(x, y, Sprite.TREE)
         # self.body = Body(body_type=Body.STATIC)
         # self.body.position = (x, y)
-        top = [(0,20),(20,0),(40,20)]
+        top = [(0, 20), (20, 0), (40, 20)]
         top = Poly(self.body, [*top])
         top.elasticity = 0.1
-        middle = [(0,20),(0,35),(40,20),(40,35)]
+        middle = [(0, 20), (0, 35), (40, 20), (40, 35)]
         middle = Poly(self.body, [*middle])
         middle.elasticity = 0.1
-        bottom = [(15,35),(25,35),(15,60),(25,60)] 
+        bottom = [(15, 35), (25, 35), (15, 60), (25, 60)]
         bottom = Poly(self.body, [*bottom])
         bottom.elasticity = 1
         self.shapes.append(top)
         self.shapes.append(middle)
         self.shapes.append(bottom)
         pyxel.space.add(*self.shapes)
-
-    def blit(self):
-        return (*self.body.position, *self.sprite.value.as_tuple())
-
-    def draw(self, collisors=None):
-        pyxel.blt(*self.blit())
-        if collisors:
-            for shape in self.shapes:
-                draw_poly(shape, pyxel.COLOR_RED)
