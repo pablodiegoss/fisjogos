@@ -3,9 +3,11 @@ from pymunk import Space, Segment
 from .models import *
 from .utils import *
 from math import cos, sin
+from .cooldowns import TimedEvent, Cooldown
 
 tile = lambda x: x * 8
 gc = GameConfig()
+from time import time
 
 
 def get_mouse_angle():
@@ -30,6 +32,19 @@ def update():
 
     if pyxel.btnp(pyxel.KEY_C, period=100):
         pyxel.collisors = not pyxel.collisors
+
+    if pyxel.btnp(pyxel.KEY_J, period=2):
+        pyxel.camera_offset += (+3,0)
+        if tuple(pyxel.camera_offset) > (399,0):
+            pyxel.camera_offset = Vec2d(399,0)
+
+    if pyxel.btnp(pyxel.KEY_K, period=2):
+        pyxel.camera_offset += (-3,0)
+        if tuple(pyxel.camera_offset) < (-430,0):
+            pyxel.camera_offset = Vec2d(-430,0)
+        
+
+
 
     if pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON, period=100):
         player = pyxel.player1
@@ -60,7 +75,7 @@ def update():
 
 def draw():
     pyxel.cls(pyxel.COLOR_WHITE)
-    pyxel.bltm(0, 0, 0, 0, 0, tile(4), tile(3), pyxel.COLOR_WHITE)
+    pyxel.bltm(*((-400,0) + pyxel.camera_offset), 0, 0, 0, tile(17), tile(3), pyxel.COLOR_WHITE)
 
     if pyxel.collisors:
         pyxel.line(*pyxel.floor.a, *pyxel.floor.b, pyxel.COLOR_RED)
@@ -98,7 +113,9 @@ def set_up():
         line, (-150, GameConfig().height - 1), (450, GameConfig().height - 1), 2
     )
     pyxel.space.add(pyxel.floor)
-    pyxel.camera_offset = (20, 0)
+
+    pyxel.camera_offset = Vec2d(0, 0)
+
     pyxel.player1 = Player(15, 0, Sprite.BLUE)
     pyxel.player2 = Player(195, 0, Sprite.RED)
     tree = Tree(64 * 4 / 2 - Sprite.TREE.value.width / 2, 0)
