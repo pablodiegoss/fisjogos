@@ -1,7 +1,8 @@
-from ..utils import get_rot_mat, GameConfig, get_mouse_pos, draw_poly
+from pymunk import vec2d
+from ..utils import get_rot_mat, GameConfig, get_mouse_pos, draw_poly, invert_angle
 from .pyxel_base import *
 from pymunk import Poly
-from math import sqrt
+from math import cos,sin
 from random import randint
 import copy
 
@@ -61,50 +62,41 @@ class Slingshot(PyxelObject):
             pyxel.circb(*(self.get_nock_position() + camera_offset), 2, pyxel.COLOR_RED)
 
     def update(self):
-        mouse_pos = get_mouse_pos()
+        # mouse_pos = get_mouse_pos()
         origin = self.get_nock_origin()
-        nock_pos = mouse_pos - origin
-        nock_pos *= -1
+        nock_pos = Vec2d(0,0)
+        angle = invert_angle(pyxel.angle_rad)
+        multiplier = pyxel.force/3.3
+        nock_pos += (cos(angle),-sin(angle))
+        nock_pos *= multiplier
         self.nock_position = nock_pos + origin
-        string_length = 40
-        if self.nock_position.x < self.get_nock_origin().x - string_length:
-            self.nock_position.x = self.get_nock_origin().x - string_length
-        if self.nock_position.x >= self.get_nock_origin().x + string_length:
-            self.nock_position.x = self.get_nock_origin().x + string_length
-
-        if self.nock_position.y < self.get_nock_origin().y - string_length / 2:
-            self.nock_position.y = self.get_nock_origin().y - string_length / 2
-        if self.nock_position.y >= self.get_nock_origin().y + string_length / 2:
-            self.nock_position.y = self.get_nock_origin().y + string_length / 2
-
 
 class Player(PyxelObject):
-    slingshot_offset = Vec2d(12, 0)
+    slingshot_offset = Vec2d(12, -3)
 
     def __init__(self, x, y, sprite):
         super().__init__(x, y, sprite)
         self.has_shot = False
         self.life = 100
         self.flipped = False
-        
-        head = Circle(self.body, 5, offset=(4,5))
+
+        head = Circle(self.body, 5, offset=(4, 5))
         head.collision_type = 2
         head.obj = self
         self.shapes.append(head)
 
         body = [(2.5, 8), (7.5, 8), (2.5, 20), (7.5, 20)]
-        body = Poly(self.body,body)
+        body = Poly(self.body, body)
         body.collision_type = 3
         body.obj = self
         self.shapes.append(body)
 
         feet = [(2.5, 20), (7.5, 20), (0, 30), (10, 30)]
-        feet = Poly(self.body,feet)
+        feet = Poly(self.body, feet)
         feet.collision_type = 4
         feet.obj = self
         self.shapes.append(feet)
 
-        
         pyxel.space.add(*self.shapes)
 
         self.slingshot = Slingshot(x, y)
@@ -158,7 +150,7 @@ class Player(PyxelObject):
         )
         self.slingshot.draw(camera_offset, collisors)
 
-        # # string arm
+        # 
         elbow_x = self.x - 2 if not self.flipped else self.x + 11
         elbow_position = (elbow_x, shoulder_position[1] + 2) + camera_offset
         # pyxel.line(*shoulder_position, *elslingshot_position, pyxel.COLOR_BLACK)
@@ -166,10 +158,7 @@ class Player(PyxelObject):
 
     def update(self):
         self.slingshot.update()
-        # m = get_rot_mat(pyxel.angle_rad)
-        # self.slingshot.draw_pos = self.slingshot.pos - self.get_shoulder()
-        # self.slingshot.draw_pos = m * (self.slingshot.draw_pos)
-        # self.slingshot.draw_pos += self.get_shoulder()
+
 
 
 class Rock(PyxelObject):

@@ -38,7 +38,7 @@ def edist(p, q):
     return sqrt(sum((px - qx) ** 2.0 for px, qx in zip(p, q)))
 
 
-def invertAngle(angle):
+def invert_angle(angle):
     return (angle + pi) % (2 * pi)
 
 
