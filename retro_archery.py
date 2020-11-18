@@ -1,4 +1,4 @@
-"""Archery Game based on Pyxel and Pymunk"""
+"""Slingshot Game based on Pyxel and Pymunk"""
 
 __version__ = "0.0.1"
 

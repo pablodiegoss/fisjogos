@@ -62,9 +62,9 @@ def update():
         force = pyxel.force * 10
         impulse = (cos(pyxel.angle_rad) * force, sin(-pyxel.angle_rad) * force)
 
-        rock.body.apply_impulse_at_world_point(
-            impulse, player.slingshot.get_nock_position()
-        )
+    if Cooldown.check(TimedEvent.WIND_CHANGE):
+        pyxel.wind.change()
+        Cooldown.activate(TimedEvent.WIND_CHANGE)
         pyxel.space.add(rock.body, *rock.shapes)
         pyxel.objects.append(rock)
 
