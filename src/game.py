@@ -1,5 +1,6 @@
 import pyxel
 from pymunk import Space, Segment
+from itertools import cycle
 from .models import *
 from .utils import *
 from math import cos, sin
@@ -11,7 +12,7 @@ from time import time
 
 
 def get_mouse_angle():
-    origin = pyxel.player1.slingshot.get_nock_origin()
+    origin = pyxel.active_player.slingshot.get_nock_origin()
     slingshot_horizontal_line = Vec2d(origin[0] + gc.width, origin[1])
     mouse_pos = get_mouse_pos()
 
@@ -25,7 +26,8 @@ def get_mouse_angle():
 
 def update():
     pyxel.angle, pyxel.angle_rad = get_mouse_angle()
-    player = pyxel.player1
+    player = get_active_player()
+
     pyxel.force = edist(player.slingshot.get_nock_origin(), get_mouse_pos())
     if pyxel.force > 100:
         pyxel.force = 100
@@ -56,21 +58,16 @@ def update():
         pyxel.wind.direction += (0, -1)
         print(pyxel.wind.direction)
 
-    if pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON, period=100):
-        player = pyxel.player1
-        rock = Rock(*player.slingshot.get_nock_position())
-        force = pyxel.force * 10
-        impulse = (cos(pyxel.angle_rad) * force, sin(-pyxel.angle_rad) * force)
-
+    check_shoot(player)
+    
     if Cooldown.check(TimedEvent.WIND_CHANGE):
         pyxel.wind.change()
         Cooldown.activate(TimedEvent.WIND_CHANGE)
-        pyxel.space.add(rock.body, *rock.shapes)
-        pyxel.objects.append(rock)
-
+    
     for rock in filter(lambda obj: isinstance(obj, Rock), pyxel.objects):
-        rock.body.apply_force_at_world_point((0, 80), (0, 0))
+        rock.body.apply_force_at_local_point(pyxel.wind.get_wind(), (0, 0))
 
+    player.update()
     for o in pyxel.objects:
         o.update()
 
@@ -81,6 +78,32 @@ def update():
         pyxel.space.remove([o.body, *o.shapes])
 
     pyxel.space.step(1 / GameConfig().fps)
+
+def check_shoot(player):
+    if pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON) and Cooldown.check(TimedEvent.SHOT_TIMEOUT):
+        rock = Rock(*player.slingshot.get_nock_position())
+        force = pyxel.force * 10
+        impulse = (cos(pyxel.angle_rad) * force, sin(-pyxel.angle_rad) * force)
+
+        rock.body.apply_impulse_at_world_point(
+            impulse, player.slingshot.get_nock_position()
+        )
+        pyxel.space.add(rock.body, *rock.shapes)
+        pyxel.objects.append(rock)
+        Cooldown.activate(TimedEvent.SHOT_TIMEOUT)
+        pyxel.active_player.has_shot = True
+
+def get_active_player():
+    if pyxel.active_player.has_shot and (Cooldown.check(TimedEvent.SHOT_TIMEOUT)):
+        pyxel.active_player.has_shot = False
+        pyxel.active_player = next(pyxel.player_changer)
+
+    return pyxel.active_player
+
+def player_generator():
+    while True:
+        for player in pyxel.players:
+            yield player
 
 
 def draw():
@@ -98,7 +121,7 @@ def draw():
     if pyxel.collisors:
         pyxel.line(*pyxel.floor.a, *pyxel.floor.b, pyxel.COLOR_RED)
 
-    for o in pyxel.objects:
+    for o in [*pyxel.objects, *pyxel.players]:
         o.draw(pyxel.camera_offset, collisors=pyxel.collisors)
 
     draw_hud()
@@ -106,14 +129,14 @@ def draw():
 
 def draw_hud():
     text = f'Angle = {"{:.1f}".format(pyxel.angle)} [mouse]'
-    pyxel.text(pyxel.player1.x + 20, pyxel.player1.y + 15, text, pyxel.COLOR_BLACK)
+    pyxel.text(pyxel.active_player.x + 20, pyxel.active_player.y + 15, text, pyxel.COLOR_BLACK)
     text = f'Force = {"{:.1f}".format(pyxel.force)} [mouse distance]'
-    pyxel.text(pyxel.player1.x + 20, pyxel.player1.y + 22, text, pyxel.COLOR_BLACK)
+    pyxel.text(pyxel.active_player.x + 20, pyxel.active_player.y + 22, text, pyxel.COLOR_BLACK)
 
     pyxel.wind.draw(GameConfig().width / 2, 12)
 
-    draw_hp_bar("P1", pyxel.player1.life, 1, 8)
-    draw_hp_bar("P2", pyxel.player1.life, 195, 8)
+    draw_hp_bar("P1", pyxel.players[0].life, 1, 8)
+    draw_hp_bar("P2", pyxel.players[1].life, 195, 8)
 
 
 def draw_hp_bar(name, player_life, x, y):
@@ -133,6 +156,7 @@ def set_up():
         floor, (-700, GameConfig().height - 1), (700, GameConfig().height - 1), 2
     )
     floor_shape.elasticity = 0.7
+    floor_shape.friction = 1.0
     pyxel.floor = floor_shape
     pyxel.space.add(floor, floor_shape)
 
@@ -142,13 +166,14 @@ def set_up():
 
     pyxel.player1 = Player(15, 0, Sprite.BLUE)
     pyxel.player2 = Player(195, 0, Sprite.RED)
+    pyxel.player_changer = player_generator()
+    pyxel.active_player = next(pyxel.player_changer)
+
     tree = Tree(64 * 4 / 2 - Sprite.TREE.value.width / 2, 0)
     pyxel.objects = [
-        pyxel.player1,
         tree,
-        pyxel.player2,
     ]
-    for o in pyxel.objects:
+    for o in [*pyxel.objects, *pyxel.players]:
         move_to_floor(o)
     tree.y += 3
     pyxel.force = 0

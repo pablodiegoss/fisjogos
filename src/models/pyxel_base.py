@@ -73,7 +73,7 @@ class PyxelObject:
             for shape in self.shapes:
                 if isinstance(shape, Circle):
                     pyxel.circb(
-                        *(self.body.position + camera_offset),
+                        *(self.body.position + camera_offset + shape.offset),
                         shape.radius,
                         pyxel.COLOR_RED
                     )
