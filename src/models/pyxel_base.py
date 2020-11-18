@@ -1,7 +1,7 @@
 import pyxel
 from enum import Enum
-from pymunk import Vec2d, Body, Circle, Poly, Segment
-from ..utils import draw_poly
+from pymunk import Body
+from ..utils import draw_shape
 
 
 class SpriteData:
@@ -71,20 +71,7 @@ class PyxelObject:
         pyxel.blt(*self.blit(camera_offset))
         if collisors:
             for shape in self.shapes:
-                if isinstance(shape, Circle):
-                    pyxel.circb(
-                        *(self.body.position + camera_offset + shape.offset),
-                        shape.radius,
-                        pyxel.COLOR_RED
-                    )
-                elif isinstance(shape, Segment):
-                    pyxel.line(
-                        *(shape.a + camera_offset),
-                        *(shape.b + camera_offset),
-                        pyxel.COLOR_RED
-                    )
-                elif isinstance(shape, Poly):
-                    draw_poly(shape, camera_offset, pyxel.COLOR_RED)
+                draw_shape(shape, camera_offset)
 
     def update(self):
         pass

@@ -1,7 +1,7 @@
-from pymunk import vec2d
+from pymunk import Vec2d
 from ..utils import get_rot_mat, GameConfig, get_mouse_pos, draw_poly, invert_angle
 from .pyxel_base import *
-from pymunk import Poly
+from pymunk import Poly, Circle, Segment
 from math import cos,sin
 from random import randint
 import copy

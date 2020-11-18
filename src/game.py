@@ -169,10 +169,10 @@ def set_up():
 
     pyxel.wind = Wind()
 
-    p1 = Player(15, 0, Sprite.BLUE)
+    p1 = Player(15, 161, Sprite.BLUE)
     for shape in p1.shapes:
         shape.filter = ShapeFilter(categories=0b01)
-    p2 = Player(195, 0, Sprite.RED)
+    p2 = Player(195, 161, Sprite.RED)
     for shape in p2.shapes:
         shape.filter = ShapeFilter(categories=0b10)
     pyxel.players = [
@@ -182,13 +182,10 @@ def set_up():
     pyxel.player_changer = player_generator()
     pyxel.active_player = next(pyxel.player_changer)
 
-    tree = Tree(64 * 4 / 2 - Sprite.TREE.value.width / 2, 0)
+    tree = Tree(64 * 4 / 2 - Sprite.TREE.value.width / 2, 128)
     pyxel.objects = [
         tree,
     ]
-    for o in [*pyxel.objects, *pyxel.players]:
-        move_to_floor(o)
-    tree.y += 3
     pyxel.force = 0
 
 

@@ -1,5 +1,5 @@
 from math import cos, sin, sqrt, pi
-from pymunk import Transform, Vec2d
+from pymunk import Transform, Vec2d, Circle, Segment, Poly
 import pyxel
 
 
@@ -23,6 +23,19 @@ def group_tri(seq):
     for z in rest:
         yield (x, y, z)
         y = z
+
+
+def draw_shape(shape, offset, color=pyxel.COLOR_RED):
+    if isinstance(shape, Circle):
+        pyxel.circb(
+            *(shape.body.position + offset + shape.offset), shape.radius, color
+        )
+    elif isinstance(shape, Segment):
+        ax, ay = shape.body.local_to_world(shape.a) + offset
+        bx, by = shape.body.local_to_world(shape.b) + offset
+        pyxel.line(ax, ay, bx, by, color)
+    elif isinstance(shape, Poly):
+        draw_poly(shape, offset, color)
 
 
 def draw_poly(shape, camera_offset, color):
