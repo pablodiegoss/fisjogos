@@ -1,5 +1,5 @@
 import pyxel
-from pymunk import Space, Segment
+from pymunk import Space, Segment, ShapeFilter
 from itertools import cycle
 from .models import *
 from .utils import *
@@ -88,6 +88,8 @@ def check_shoot(player):
         rock.body.apply_impulse_at_world_point(
             impulse, player.slingshot.get_nock_position()
         )
+        for shape in rock.shapes:
+            shape.filter = ShapeFilter(mask= ShapeFilter.ALL_MASKS ^ pyxel.active_player.get_filter())
         pyxel.space.add(rock.body, *rock.shapes)
         pyxel.objects.append(rock)
         Cooldown.activate(TimedEvent.SHOT_TIMEOUT)
@@ -151,6 +153,8 @@ def set_up():
     pyxel.space.gravity = (0, 60)
     pyxel.collisors = True
 
+    prepare_collisions(pyxel.space)
+
     floor = Body(body_type=Body.STATIC)
     floor_shape = Segment(
         floor, (-700, GameConfig().height - 1), (700, GameConfig().height - 1), 2
@@ -164,8 +168,16 @@ def set_up():
 
     pyxel.wind = Wind()
 
-    pyxel.player1 = Player(15, 0, Sprite.BLUE)
-    pyxel.player2 = Player(195, 0, Sprite.RED)
+    p1 = Player(15, 0, Sprite.BLUE)
+    for shape in p1.shapes:
+        shape.filter = ShapeFilter(categories=0b01)
+    p2 = Player(195, 0, Sprite.RED)
+    for shape in p2.shapes:
+        shape.filter = ShapeFilter(categories=0b10)
+    pyxel.players = [
+        p1,
+        p2
+    ]
     pyxel.player_changer = player_generator()
     pyxel.active_player = next(pyxel.player_changer)
 
@@ -177,3 +189,12 @@ def set_up():
         move_to_floor(o)
     tree.y += 3
     pyxel.force = 0
+
+
+def prepare_collisions(space):
+    pass
+    # rock_head_h = space.add_collision_handler(1,2)
+
+    # rock_head_h.begin = lambda arbiter,space,data:
+    # rock_body_h = space.add_collision_handler(1,3)
+    # rock_feet_h = space.add_collision_handler(1,4)

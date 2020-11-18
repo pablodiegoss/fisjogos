@@ -83,8 +83,27 @@ class Player(PyxelObject):
 
     def __init__(self, x, y, sprite):
         super().__init__(x, y, sprite)
+        self.has_shot = False
         self.life = 100
         self.flipped = False
+        
+        head = Circle(self.body, 5, offset=(4,5))
+        head.collision_type = 2
+        self.shapes.append(head)
+
+        body = [(2.5, 8), (7.5, 8), (2.5, 20), (7.5, 20)]
+        body = Poly(self.body,body)
+        body.collision_type = 3
+        self.shapes.append(body)
+
+        feet = [(2.5, 20), (7.5, 20), (0, 30), (10, 30)]
+        feet = Poly(self.body,feet)
+        feet.collision_type = 4
+        self.shapes.append(feet)
+
+        
+        pyxel.space.add(*self.shapes)
+
         self.slingshot = Slingshot(x, y)
         if sprite.value == Sprite.RED.value:
             self.flipped = True
@@ -96,6 +115,9 @@ class Player(PyxelObject):
         self.slingshot.body.position = (
             self.slingshot.body.position + self.slingshot_offset
         )
+    def get_filter(self):
+        print(self.shapes[0].filter.categories)
+        return self.shapes[0].filter.categories
 
     @property
     def x(self):
@@ -153,7 +175,9 @@ class Rock(PyxelObject):
         self.body = Body(mass=3, moment=1)
         self.body.position = (x, y)
         shape = Circle(self.body, Sprite.ROCK.value.width / 2)
-        shape.elasticity = 0.8
+        shape.elasticity = 0.3
+        shape.friction = 0.8
+        shape.collision_type = 1
         self.shapes.append(shape)
 
     def blit(self, camera_offset):
@@ -173,17 +197,15 @@ class Rock(PyxelObject):
 class Tree(PyxelObject):
     def __init__(self, x, y):
         super().__init__(x, y, Sprite.TREE)
-        # self.body = Body(body_type=Body.STATIC)
-        # self.body.position = (x, y)
         top = [(0, 20), (20, 0), (40, 20)]
-        top = Poly(self.body, [*top])
+        top = Poly(self.body, top)
         top.elasticity = 0.1
         middle = [(0, 20), (0, 35), (40, 20), (40, 35)]
-        middle = Poly(self.body, [*middle])
+        middle = Poly(self.body, middle)
         middle.elasticity = 0.1
-        bottom = [(15, 35), (25, 35), (15, 60), (25, 60)]
-        bottom = Poly(self.body, [*bottom])
-        bottom.elasticity = 1
+        bottom = [(15, 35), (25, 35), (15, 65), (25, 65)]
+        bottom = Poly(self.body, bottom)
+        bottom.elasticity = 0.7
         self.shapes.append(top)
         self.shapes.append(middle)
         self.shapes.append(bottom)
