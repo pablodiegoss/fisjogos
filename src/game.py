@@ -106,6 +106,7 @@ def player_generator():
     while True:
         for player in pyxel.players:
             yield player
+            # yield pyxel.players[0]
 
 
 def draw():
@@ -192,9 +193,25 @@ def set_up():
 
 
 def prepare_collisions(space):
-    pass
-    # rock_head_h = space.add_collision_handler(1,2)
+    head_multiplier = 2
+    body_multiplier = 1.5
+    feet_multiplier = 1
+    rock_damage = 10
 
-    # rock_head_h.begin = lambda arbiter,space,data:
-    # rock_body_h = space.add_collision_handler(1,3)
-    # rock_feet_h = space.add_collision_handler(1,4)
+    def collision_handler_generator(damage, multiplier):
+        def result_func(arbiter,space,data):
+            for shape in arbiter.shapes:
+                if isinstance(shape.obj, Rock):
+                    shape.obj.is_active = False
+                if isinstance(shape.obj, Player):
+                    shape.obj.life -= damage*multiplier
+        return result_func            
+    
+    rock_head_h = space.add_collision_handler(1,2)
+    rock_head_h.post_solve = collision_handler_generator(rock_damage,head_multiplier)
+
+    rock_body_h = space.add_collision_handler(1,3)
+    rock_body_h.post_solve = collision_handler_generator(rock_damage,body_multiplier)
+    
+    rock_feet_h = space.add_collision_handler(1,4)
+    rock_feet_h.post_solve = collision_handler_generator(rock_damage,feet_multiplier)

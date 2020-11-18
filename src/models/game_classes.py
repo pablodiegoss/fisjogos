@@ -89,16 +89,19 @@ class Player(PyxelObject):
         
         head = Circle(self.body, 5, offset=(4,5))
         head.collision_type = 2
+        head.obj = self
         self.shapes.append(head)
 
         body = [(2.5, 8), (7.5, 8), (2.5, 20), (7.5, 20)]
         body = Poly(self.body,body)
         body.collision_type = 3
+        body.obj = self
         self.shapes.append(body)
 
         feet = [(2.5, 20), (7.5, 20), (0, 30), (10, 30)]
         feet = Poly(self.body,feet)
         feet.collision_type = 4
+        feet.obj = self
         self.shapes.append(feet)
 
         
@@ -115,8 +118,8 @@ class Player(PyxelObject):
         self.slingshot.body.position = (
             self.slingshot.body.position + self.slingshot_offset
         )
+
     def get_filter(self):
-        print(self.shapes[0].filter.categories)
         return self.shapes[0].filter.categories
 
     @property
@@ -178,6 +181,7 @@ class Rock(PyxelObject):
         shape.elasticity = 0.3
         shape.friction = 0.8
         shape.collision_type = 1
+        shape.obj = self
         self.shapes.append(shape)
 
     def blit(self, camera_offset):
