@@ -1,7 +1,7 @@
 from pymunk import Vec2d
 from ..utils import get_rot_mat, GameConfig, get_mouse_pos, draw_poly, invert_angle
 from .pyxel_base import *
-from pymunk import Poly, Circle, Segment
+from pymunk import Poly, Circle, Segment, ShapeFilter
 from math import cos,sin
 from random import randint
 import copy
@@ -96,12 +96,12 @@ class Player(PyxelObject):
         feet.collision_type = 4
         feet.obj = self
         self.shapes.append(feet)
-
-        pyxel.space.add(*self.shapes)
+        self.category = 0b01
 
         self.slingshot = Slingshot(x, y)
         if sprite.value == Sprite.RED.value:
             self.flipped = True
+            self.category = 0b10
             self.slingshot_offset = (
                 self.slingshot_offset[0] * -1,
                 self.slingshot_offset[1],
@@ -110,9 +110,12 @@ class Player(PyxelObject):
         self.slingshot.body.position = (
             self.slingshot.body.position + self.slingshot_offset
         )
+        for shape in self.shapes:
+            shape.filter = ShapeFilter(categories=self.category)
+        pyxel.space.add(*self.shapes)
 
     def get_filter(self):
-        return self.shapes[0].filter.categories
+        return self.category
 
     @property
     def x(self):

@@ -170,11 +170,7 @@ def set_up():
     pyxel.wind = Wind()
 
     p1 = Player(15, 161, Sprite.BLUE)
-    for shape in p1.shapes:
-        shape.filter = ShapeFilter(categories=0b01)
     p2 = Player(195, 161, Sprite.RED)
-    for shape in p2.shapes:
-        shape.filter = ShapeFilter(categories=0b10)
     pyxel.players = [
         p1,
         p2
