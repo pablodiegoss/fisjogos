@@ -183,6 +183,7 @@ class Player(PyxelObject):
         pyxel.space.add(rock.body, *rock.shapes)
         pyxel.objects.append(rock)
         pyxel.active_player.has_shot = True
+        pyxel.active_rock = rock
 
 
 class Rock(PyxelObject):

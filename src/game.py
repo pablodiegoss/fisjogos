@@ -39,16 +39,42 @@ def update():
 def get_active_player():
     if pyxel.active_player.has_shot and (Cooldown.check(TimedEvent.SHOT_TIMEOUT)):
         pyxel.active_player.has_shot = False
+        pyxel.active_rock = None
         pyxel.active_player = next(pyxel.player_changer)
+        move_camera_to_player(pyxel.active_player)
 
     return pyxel.active_player
 
+def get_camera_range():
+    border_size = 0.2
+    screen_width = GameConfig().width    
+    camera_x_offset = pyxel.camera_offset.x
+    return (screen_width*border_size - camera_x_offset,screen_width*(1-border_size) - camera_x_offset)
+
+def in_camera_range(x):
+    camera_range = get_camera_range()
+    print(camera_range)
+    if x < camera_range[0]:
+        return False
+    elif x > camera_range[1]:
+        return False
+    return True
 
 def draw():
     draw_background()
 
     if pyxel.collisors:
         pyxel.line(*pyxel.floor.shape.a, *pyxel.floor.shape.b, pyxel.COLOR_RED)
+    if pyxel.active_rock:
+        x = pyxel.active_rock.body.position.x
+        if not in_camera_range(x):
+            camera_range = get_camera_range()
+            difference = min(abs(x - camera_range[0]), abs(x- camera_range[1]))
+            print(difference)
+            if x > camera_range[1]:
+                pyxel.camera_offset[0] -= difference
+            if x < camera_range[0]:
+                pyxel.camera_offset[0] += difference
 
     for o in [*pyxel.objects, *pyxel.players]:
         o.draw(pyxel.camera_offset, collisors=pyxel.collisors)
@@ -63,7 +89,7 @@ def set_up():
     pyxel.camera_offset = Vec2d(0, 0)
     pyxel.player_changer = player_generator()
     pyxel.force = 0
-
+    pyxel.active_rock = None
     pyxel.space.damping = 0.75
     pyxel.space.gravity = (0, 60)
     pyxel.collisors = True
@@ -71,10 +97,12 @@ def set_up():
     set_up_collisions(pyxel.space)
     pyxel.space.add(pyxel.floor.body, pyxel.floor.shape)
 
-    p1 = Player(15, 161, Sprite.BLUE)
-    p2 = Player(195, 161, Sprite.RED)
+    players_distance = 100
+    p1 = Player(15 - players_distance, 161, Sprite.BLUE)
+    p2 = Player(195 + players_distance, 161, Sprite.RED)
     pyxel.players = [p1, p2]
     pyxel.active_player = next(pyxel.player_changer)
+    move_camera_to_player(pyxel.active_player)
 
     pyxel.objects = [Tree(64 * 4 / 2 - Sprite.TREE.value.width / 2, 128)]
 

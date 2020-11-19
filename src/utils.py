@@ -20,6 +20,13 @@ def get_mouse_angle(player):
         mouse_pos.get_angle_between(slingshot_horizontal_line),
     )
 
+def move_camera_to_player(player):
+    move_camera_to(player.x - GameConfig().width / 2, 0)
+
+
+def move_camera_to(x, y):
+    # base_center_offset = Vec2d(108.5, 128.0)
+    pyxel.camera_offset = Vec2d(-x, y)
 
 def draw_shape(shape, offset, color=pyxel.COLOR_RED):
     if isinstance(shape, Circle):

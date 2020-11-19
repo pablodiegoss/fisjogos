@@ -20,11 +20,11 @@ def draw_background():
 def draw_hud():
     text = f'Angle = {"{:.1f}".format(pyxel.angle)} [mouse]'
     pyxel.text(
-        pyxel.active_player.x + 20, pyxel.active_player.y + 15, text, pyxel.COLOR_BLACK
+        15 + 20, 161 + 15, text, pyxel.COLOR_BLACK
     )
     text = f'Force = {"{:.1f}".format(pyxel.force)} [mouse distance]'
     pyxel.text(
-        pyxel.active_player.x + 20, pyxel.active_player.y + 22, text, pyxel.COLOR_BLACK
+        15 + 20, 161 + 22, text, pyxel.COLOR_BLACK
     )
 
     pyxel.wind.draw(GameConfig().width / 2, 12)
