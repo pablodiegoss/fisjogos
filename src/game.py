@@ -1,69 +1,25 @@
+from src.hud import draw_background, draw_hud
+from .inputs import check_game_inputs
 import pyxel
-from pymunk import Space, Segment, ShapeFilter
-from itertools import cycle
+from pymunk import Space, Segment
 from .models import *
 from .utils import *
-from math import cos, sin
 from .cooldowns import TimedEvent, Cooldown
-
-tile = lambda x: x * 8
-gc = GameConfig()
-from time import time
-
-
-def get_mouse_angle():
-    origin = pyxel.active_player.slingshot.get_nock_origin()
-    slingshot_horizontal_line = Vec2d(origin[0] + gc.width, origin[1])
-    mouse_pos = get_mouse_pos()
-
-    slingshot_horizontal_line = slingshot_horizontal_line - origin
-    mouse_pos = mouse_pos - origin
-    return (
-        mouse_pos.get_angle_degrees_between(slingshot_horizontal_line),
-        mouse_pos.get_angle_between(slingshot_horizontal_line),
-    )
 
 
 def update():
-    pyxel.angle, pyxel.angle_rad = get_mouse_angle()
+    pyxel.angle, pyxel.angle_rad = get_mouse_angle(pyxel.active_player)
     player = get_active_player()
 
     pyxel.force = edist(player.slingshot.get_nock_origin(), get_mouse_pos())
     if pyxel.force > 100:
         pyxel.force = 100
 
-    if pyxel.btnp(pyxel.KEY_C, period=100):
-        pyxel.collisors = not pyxel.collisors
-
-    if pyxel.btnp(pyxel.KEY_J, period=2):
-        pyxel.camera_offset += (+3, 0)
-        if tuple(pyxel.camera_offset) > (399, 0):
-            pyxel.camera_offset = Vec2d(399, 0)
-
-    if pyxel.btnp(pyxel.KEY_K, period=2):
-        pyxel.camera_offset += (-3, 0)
-        if tuple(pyxel.camera_offset) < (-430, 0):
-            pyxel.camera_offset = Vec2d(-430, 0)
-
-    if pyxel.btnp(pyxel.KEY_U, period=2):
-        pyxel.wind.direction += (1, 0)
-        print(pyxel.wind.direction)
-    if pyxel.btnp(pyxel.KEY_I, period=2):
-        pyxel.wind.direction += (0, 1)
-        print(pyxel.wind.direction)
-    if pyxel.btnp(pyxel.KEY_N, period=2):
-        pyxel.wind.direction += (-1, 0)
-        print(pyxel.wind.direction)
-    if pyxel.btnp(pyxel.KEY_M, period=2):
-        pyxel.wind.direction += (0, -1)
-        print(pyxel.wind.direction)
-
-    check_shoot(player)
-    
+    check_game_inputs()
     if Cooldown.check(TimedEvent.WIND_CHANGE):
         pyxel.wind.change()
         Cooldown.activate(TimedEvent.WIND_CHANGE)
-    
+
     for rock in filter(lambda obj: isinstance(obj, Rock), pyxel.objects):
         rock.body.apply_force_at_local_point(pyxel.wind.get_wind(), (0, 0))
 
@@ -79,21 +35,6 @@ def update():
 
     pyxel.space.step(1 / GameConfig().fps)
 
-def check_shoot(player):
-    if pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON) and Cooldown.check(TimedEvent.SHOT_TIMEOUT):
-        rock = Rock(*player.slingshot.get_nock_position())
-        force = pyxel.force * 10
-        impulse = (cos(pyxel.angle_rad) * force, sin(-pyxel.angle_rad) * force)
-
-        rock.body.apply_impulse_at_world_point(
-            impulse, player.slingshot.get_nock_position()
-        )
-        for shape in rock.shapes:
-            shape.filter = ShapeFilter(mask= ShapeFilter.ALL_MASKS ^ pyxel.active_player.get_filter())
-        pyxel.space.add(rock.body, *rock.shapes)
-        pyxel.objects.append(rock)
-        Cooldown.activate(TimedEvent.SHOT_TIMEOUT)
-        pyxel.active_player.has_shot = True
 
 def get_active_player():
     if pyxel.active_player.has_shot and (Cooldown.check(TimedEvent.SHOT_TIMEOUT)):
@@ -102,27 +43,12 @@ def get_active_player():
 
     return pyxel.active_player
 
-def player_generator():
-    while True:
-        for player in pyxel.players:
-            yield player
-            # yield pyxel.players[0]
-
 
 def draw():
-    pyxel.cls(pyxel.COLOR_WHITE)
-    pyxel.bltm(
-        *((-400, 0) + pyxel.camera_offset),
-        0,
-        0,
-        0,
-        tile(17),
-        tile(3),
-        pyxel.COLOR_WHITE,
-    )
+    draw_background()
 
     if pyxel.collisors:
-        pyxel.line(*pyxel.floor.a, *pyxel.floor.b, pyxel.COLOR_RED)
+        pyxel.line(*pyxel.floor.shape.a, *pyxel.floor.shape.b, pyxel.COLOR_RED)
 
     for o in [*pyxel.objects, *pyxel.players]:
         o.draw(pyxel.camera_offset, collisors=pyxel.collisors)
@@ -130,81 +56,50 @@ def draw():
     draw_hud()
 
 
-def draw_hud():
-    text = f'Angle = {"{:.1f}".format(pyxel.angle)} [mouse]'
-    pyxel.text(pyxel.active_player.x + 20, pyxel.active_player.y + 15, text, pyxel.COLOR_BLACK)
-    text = f'Force = {"{:.1f}".format(pyxel.force)} [mouse distance]'
-    pyxel.text(pyxel.active_player.x + 20, pyxel.active_player.y + 22, text, pyxel.COLOR_BLACK)
-
-    pyxel.wind.draw(GameConfig().width / 2, 12)
-
-    draw_hp_bar("P1", pyxel.players[0].life, 1, 8)
-    draw_hp_bar("P2", pyxel.players[1].life, 195, 8)
-
-
-def draw_hp_bar(name, player_life, x, y):
-    pyxel.text(x, y, name, pyxel.COLOR_BLACK)
-    pyxel.rect(x + 8, y - 3, 51, 11, pyxel.COLOR_BLACK)
-    pyxel.rect(x + 9, y - 2, 49 * (player_life / 100), 9, pyxel.COLOR_GREEN)
-
-
 def set_up():
+    pyxel.wind = Wind()
+    pyxel.floor = Floor()
     pyxel.space = Space()
+    pyxel.camera_offset = Vec2d(0, 0)
+    pyxel.player_changer = player_generator()
+    pyxel.force = 0
+
     pyxel.space.damping = 0.75
     pyxel.space.gravity = (0, 60)
     pyxel.collisors = True
 
-    prepare_collisions(pyxel.space)
-
-    floor = Body(body_type=Body.STATIC)
-    floor_shape = Segment(
-        floor, (-700, GameConfig().height - 1), (700, GameConfig().height - 1), 2
-    )
-    floor_shape.elasticity = 0.7
-    floor_shape.friction = 1.0
-    pyxel.floor = floor_shape
-    pyxel.space.add(floor, floor_shape)
-
-    pyxel.camera_offset = Vec2d(0, 0)
-
-    pyxel.wind = Wind()
+    set_up_collisions(pyxel.space)
+    pyxel.space.add(pyxel.floor.body, pyxel.floor.shape)
 
     p1 = Player(15, 161, Sprite.BLUE)
     p2 = Player(195, 161, Sprite.RED)
-    pyxel.players = [
-        p1,
-        p2
-    ]
-    pyxel.player_changer = player_generator()
+    pyxel.players = [p1, p2]
     pyxel.active_player = next(pyxel.player_changer)
 
-    tree = Tree(64 * 4 / 2 - Sprite.TREE.value.width / 2, 128)
-    pyxel.objects = [
-        tree,
-    ]
-    pyxel.force = 0
+    pyxel.objects = [Tree(64 * 4 / 2 - Sprite.TREE.value.width / 2, 128)]
 
 
-def prepare_collisions(space):
+def set_up_collisions(space):
     head_multiplier = 2
     body_multiplier = 1.5
     feet_multiplier = 1
     rock_damage = 10
 
     def collision_handler_generator(damage, multiplier):
-        def result_func(arbiter,space,data):
+        def collision_handler(arbiter, space, data):
             for shape in arbiter.shapes:
                 if isinstance(shape.obj, Rock):
                     shape.obj.is_active = False
                 if isinstance(shape.obj, Player):
-                    shape.obj.life -= damage*multiplier
-        return result_func            
-    
-    rock_head_h = space.add_collision_handler(1,2)
-    rock_head_h.post_solve = collision_handler_generator(rock_damage,head_multiplier)
+                    shape.obj.life -= damage * multiplier
 
-    rock_body_h = space.add_collision_handler(1,3)
-    rock_body_h.post_solve = collision_handler_generator(rock_damage,body_multiplier)
-    
-    rock_feet_h = space.add_collision_handler(1,4)
-    rock_feet_h.post_solve = collision_handler_generator(rock_damage,feet_multiplier)
+        return collision_handler
+
+    rock_head_h = space.add_collision_handler(1, 2)
+    rock_head_h.post_solve = collision_handler_generator(rock_damage, head_multiplier)
+
+    rock_body_h = space.add_collision_handler(1, 3)
+    rock_body_h.post_solve = collision_handler_generator(rock_damage, body_multiplier)
+
+    rock_feet_h = space.add_collision_handler(1, 4)
+    rock_feet_h.post_solve = collision_handler_generator(rock_damage, feet_multiplier)

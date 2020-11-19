@@ -6,7 +6,6 @@ from enum import Enum
 class TimedEvent(Enum):
     WIND_CHANGE = 20
     SHOT_TIMEOUT = 5
-    
 
 
 class Cooldown(metaclass=SingletonMeta):

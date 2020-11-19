@@ -3,33 +3,27 @@ from pymunk import Transform, Vec2d, Circle, Segment, Poly
 import pyxel
 
 
-def move_to_floor(pyxel_object):
-    floor_height = 3
-    pyxel_object.y = GameConfig().height - pyxel_object.height - floor_height
-
-
-def get_rot_mat(angle_rad):
-    cos_ = cos(angle_rad)
-    sin_ = sin(angle_rad)
-    return Transform(a=cos_, b=sin_, c=-sin_, d=cos_, tx=0, ty=0)
-
-
 def get_mouse_pos():
     return Vec2d(pyxel.mouse_x, pyxel.mouse_y) - pyxel.camera_offset
 
 
-def group_tri(seq):
-    x, y, *rest = seq
-    for z in rest:
-        yield (x, y, z)
-        y = z
+def get_mouse_angle(player):
+    origin = player.slingshot.get_nock_origin()
+    slingshot_horizontal_line = Vec2d(origin[0] + GameConfig().width, origin[1])
+    mouse_pos = get_mouse_pos()
+
+    slingshot_horizontal_line = slingshot_horizontal_line - origin
+    mouse_pos = mouse_pos - origin
+
+    return (
+        mouse_pos.get_angle_degrees_between(slingshot_horizontal_line),
+        mouse_pos.get_angle_between(slingshot_horizontal_line),
+    )
 
 
 def draw_shape(shape, offset, color=pyxel.COLOR_RED):
     if isinstance(shape, Circle):
-        pyxel.circb(
-            *(shape.body.position + offset + shape.offset), shape.radius, color
-        )
+        pyxel.circb(*(shape.body.position + offset + shape.offset), shape.radius, color)
     elif isinstance(shape, Segment):
         ax, ay = shape.body.local_to_world(shape.a) + offset
         bx, by = shape.body.local_to_world(shape.b) + offset
@@ -38,8 +32,15 @@ def draw_shape(shape, offset, color=pyxel.COLOR_RED):
         draw_poly(shape, offset, color)
 
 
+def group_triangles(vertices):
+    x, y, *rest = vertices
+    for z in rest:
+        yield (x, y, z)
+        y = z
+
+
 def draw_poly(shape, camera_offset, color):
-    for tri in group_tri(shape.get_vertices()):
+    for tri in group_triangles(shape.get_vertices()):
         coords = []
         for v in tri:
             x, y = v.rotated(shape.body.angle) + shape.body.position + camera_offset
@@ -53,6 +54,13 @@ def edist(p, q):
 
 def invert_angle(angle):
     return (angle + pi) % (2 * pi)
+
+
+def player_generator():
+    while True:
+        for player in pyxel.players:
+            yield player
+            # yield pyxel.players[0]
 
 
 class SingletonMeta(type):

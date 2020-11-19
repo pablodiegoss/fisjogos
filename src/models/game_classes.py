@@ -1,12 +1,20 @@
 from pymunk import Vec2d
-from ..utils import get_rot_mat, GameConfig, get_mouse_pos, draw_poly, invert_angle
+from ..utils import GameConfig, invert_angle
 from .pyxel_base import *
 from pymunk import Poly, Circle, Segment, ShapeFilter
-from math import cos,sin
+from math import cos, sin
 from random import randint
 import copy
 
-
+class Floor(): 
+    def __init__(self):
+        self.body = Body(body_type=Body.STATIC)
+        self.shape = Segment(
+        self.body, (-700, GameConfig().height - 1), (700, GameConfig().height - 1), 2
+        )
+        self.shape.elasticity = 0.7
+        self.shape.friction = 10
+ 
 class Slingshot(PyxelObject):
     def __init__(self, x, y):
         self.nock_offset = Vec2d(4, 1)
@@ -62,14 +70,14 @@ class Slingshot(PyxelObject):
             pyxel.circb(*(self.get_nock_position() + camera_offset), 2, pyxel.COLOR_RED)
 
     def update(self):
-        # mouse_pos = get_mouse_pos()
         origin = self.get_nock_origin()
-        nock_pos = Vec2d(0,0)
+        nock_pos = Vec2d(0, 0)
         angle = invert_angle(pyxel.angle_rad)
-        multiplier = pyxel.force/3.3
-        nock_pos += (cos(angle),-sin(angle))
+        multiplier = pyxel.force / 3.3
+        nock_pos += (cos(angle), -sin(angle))
         nock_pos *= multiplier
         self.nock_position = nock_pos + origin
+
 
 class Player(PyxelObject):
     slingshot_offset = Vec2d(12, -3)
@@ -110,6 +118,7 @@ class Player(PyxelObject):
         self.slingshot.body.position = (
             self.slingshot.body.position + self.slingshot_offset
         )
+
         for shape in self.shapes:
             shape.filter = ShapeFilter(categories=self.category)
         pyxel.space.add(*self.shapes)
@@ -153,7 +162,7 @@ class Player(PyxelObject):
         )
         self.slingshot.draw(camera_offset, collisors)
 
-        # 
+        #
         elbow_x = self.x - 2 if not self.flipped else self.x + 11
         elbow_position = (elbow_x, shoulder_position[1] + 2) + camera_offset
         # pyxel.line(*shoulder_position, *elslingshot_position, pyxel.COLOR_BLACK)
@@ -162,12 +171,24 @@ class Player(PyxelObject):
     def update(self):
         self.slingshot.update()
 
+    def shoot(self):
+        rock = Rock(*self.slingshot.get_nock_position(), self)
+        force = pyxel.force * 10
+        impulse = (cos(pyxel.angle_rad) * force, sin(-pyxel.angle_rad) * force)
+
+        rock.body.apply_impulse_at_world_point(
+            impulse, self.slingshot.get_nock_position()
+        )
+
+        pyxel.space.add(rock.body, *rock.shapes)
+        pyxel.objects.append(rock)
+        pyxel.active_player.has_shot = True
 
 
 class Rock(PyxelObject):
-    def __init__(self, x, y):
+    def __init__(self, x, y, player):
         super().__init__(x, y, Sprite.ROCK)
-        self.body = Body(mass=3, moment=1)
+        self.body = Body(mass=3, moment=5000)
         self.body.position = (x, y)
         shape = Circle(self.body, Sprite.ROCK.value.width / 2)
         shape.elasticity = 0.3
@@ -175,6 +196,8 @@ class Rock(PyxelObject):
         shape.collision_type = 1
         shape.obj = self
         self.shapes.append(shape)
+        for shape in self.shapes:
+            shape.filter = ShapeFilter(mask=ShapeFilter.ALL_MASKS ^ player.get_filter())
 
     def blit(self, camera_offset):
         return (
