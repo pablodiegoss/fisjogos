@@ -36,6 +36,7 @@ class Sprite(Enum):
     VERTICAL_ARROW = SpriteData(0, 34, 65, 12, 15, pyxel.COLOR_WHITE)
     DIAGONAL_ARROW = SpriteData(0, 21, 69, 11, 11, pyxel.COLOR_WHITE)
     CIRCLE = SpriteData(0, 48, 64, 16, 16, pyxel.COLOR_WHITE)
+    SMALL_ROCK = SpriteData(0, 22, 86, 5, 5, pyxel.COLOR_WHITE)
 
 
 class PyxelObject:
