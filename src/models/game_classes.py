@@ -189,10 +189,10 @@ class Player(PyxelObject):
 class Rock(PyxelObject):
     def __init__(self, x, y, player, sprite=Sprite.SMALL_ROCK):
         super().__init__(x, y, sprite)
-        self.body = Body(mass=3, moment=5000)
+        self.body = Body(mass=2, moment=3000)
         self.body.position = (x, y)
-        shape = Circle(self.body, sprite.value.width / 2)
-        shape.elasticity = 0.3
+        shape = Circle(self.body, sprite.value.width/2)
+        shape.elasticity = 0.5
         shape.friction = 0.8
         shape.collision_type = 1
         shape.obj = self
@@ -202,7 +202,7 @@ class Rock(PyxelObject):
 
     def blit(self, camera_offset):
         return (
-            *(self.body.position - Vec2d(1, 1) + camera_offset),
+            *(self.body.position - Vec2d(2, 2) + camera_offset),
             *self.sprite.value.as_tuple(),
         )
 

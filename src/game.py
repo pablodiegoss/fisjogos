@@ -53,7 +53,6 @@ def get_camera_range():
 
 def in_camera_range(x):
     camera_range = get_camera_range()
-    print(camera_range)
     if x < camera_range[0]:
         return False
     elif x > camera_range[1]:
@@ -70,11 +69,10 @@ def draw():
         if not in_camera_range(x):
             camera_range = get_camera_range()
             difference = min(abs(x - camera_range[0]), abs(x- camera_range[1]))
-            print(difference)
             if x > camera_range[1]:
-                pyxel.camera_offset[0] -= difference
+                move_camera_by(-difference)
             if x < camera_range[0]:
-                pyxel.camera_offset[0] += difference
+                move_camera_by(difference)
 
     for o in [*pyxel.objects, *pyxel.players]:
         o.draw(pyxel.camera_offset, collisors=pyxel.collisors)
@@ -92,7 +90,7 @@ def set_up():
     pyxel.active_rock = None
     pyxel.space.damping = 0.75
     pyxel.space.gravity = (0, 60)
-    pyxel.collisors = True
+    pyxel.collisors = False
 
     set_up_collisions(pyxel.space)
     pyxel.space.add(pyxel.floor.body, pyxel.floor.shape)

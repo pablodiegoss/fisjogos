@@ -4,7 +4,7 @@ from enum import Enum
 
 
 class TimedEvent(Enum):
-    WIND_CHANGE = 20
+    WIND_CHANGE = 60
     SHOT_TIMEOUT = 5
 
 

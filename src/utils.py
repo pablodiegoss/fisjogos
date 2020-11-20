@@ -23,6 +23,13 @@ def get_mouse_angle(player):
 def move_camera_to_player(player):
     move_camera_to(player.x - GameConfig().width / 2, 0)
 
+def move_camera_by(x, y=0):
+    pyxel.camera_offset[0] += x
+    pyxel.camera_offset[1] += y
+    if tuple(pyxel.camera_offset) < (-430, 0):
+            pyxel.camera_offset = Vec2d(-430, 0)
+    if tuple(pyxel.camera_offset) > (399, 0):
+            pyxel.camera_offset = Vec2d(399, 0)
 
 def move_camera_to(x, y):
     # base_center_offset = Vec2d(108.5, 128.0)
