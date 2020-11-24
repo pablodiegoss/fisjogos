@@ -21,7 +21,7 @@ def update():
         Cooldown.activate(TimedEvent.WIND_CHANGE)
 
     for rock in filter(lambda obj: isinstance(obj, Rock), pyxel.objects):
-        rock.body.apply_force_at_local_point(pyxel.wind.get_wind(), (0, 0))
+        rock.body.apply_force_at_world_point(pyxel.wind.get_wind(), rock.body.position)
 
     player.update()
     for o in pyxel.objects:

@@ -13,7 +13,7 @@ class Floor():
         self.body, (-700, GameConfig().height - 1), (700, GameConfig().height - 1), 2
         )
         self.shape.elasticity = 0.7
-        self.shape.friction = 10
+        self.shape.friction = 0.5
  
 class Slingshot(PyxelObject):
     def __init__(self, x, y):
@@ -187,13 +187,13 @@ class Player(PyxelObject):
 
 
 class Rock(PyxelObject):
-    def __init__(self, x, y, player, sprite=Sprite.SMALL_ROCK):
-        super().__init__(x, y, sprite)
-        self.body = Body(mass=2, moment=3000)
+    def __init__(self, x, y, player):
+        super().__init__(x, y, Sprite.SMALL_ROCK)
+        self.body = Body(mass=3, moment=float("inf"))
         self.body.position = (x, y)
-        shape = Circle(self.body, sprite.value.width/2)
-        shape.elasticity = 0.5
-        shape.friction = 0.8
+        shape = Circle(self.body, Sprite.SMALL_ROCK.value.width / 2)
+        shape.elasticity = 0.6
+        shape.friction = 0.3
         shape.collision_type = 1
         shape.obj = self
         self.shapes.append(shape)
