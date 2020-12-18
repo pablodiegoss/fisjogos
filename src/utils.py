@@ -72,8 +72,7 @@ def invert_angle(angle):
 
 def player_generator():
     while True:
-        for player in pyxel.players:
-            yield player
+        yield from pyxel.players
             # yield pyxel.players[0]
 
 
