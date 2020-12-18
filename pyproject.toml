@@ -3,7 +3,7 @@ requires = ["flit_core >=2,<3"]
 build-backend = "flit_core.buildapi"
 
 [tool.flit.metadata]
-module = "retro_archery"
+module = "slingshot"
 author = "Pablo Silva"
 author-email = "pablodiegoss@hotmail.com"
 home-page = "https://github.com/pablodiegoss/fisjogos"
