@@ -14,4 +14,9 @@ python slingshot.py
 
 This will execute the game.
 
+![slingshot](https://user-images.githubusercontent.com/8556291/102649978-e9268a80-4148-11eb-91f8-b66a3f4531a7.png)
 
+
+## Controls
+
+Use the mouse distance to control the force of the shot. A mouse click will shoot. Players take turns firing at each other, first one to kill the other, wins.
